@@ -5,6 +5,7 @@ import { HttpClient } from '@angular/common/http';
 
 interface Tramite {
   id?: number;
+  client_id?: number;
   nombre: string;
   tipo: string;
   costo: number;
@@ -22,6 +23,7 @@ interface Tramite {
 export class TramitesCrudComponent implements OnInit {
   private http = inject(HttpClient);
   private cdr = inject(ChangeDetectorRef);
+  private clientId: number = 20002;
 
   tramites: Tramite[] = [];
   loading: boolean = false;
@@ -44,6 +46,7 @@ export class TramitesCrudComponent implements OnInit {
 
   getEmptyTramite(): Tramite {
     return {
+      client_id: this.clientId,
       nombre: '',
       tipo: 'Contador Público',
       costo: 0,
@@ -55,7 +58,7 @@ export class TramitesCrudComponent implements OnInit {
   obtenerTramites(): void {
     this.loading = true;
     this.errorMsg = '';
-    this.http.get<Tramite[]>('http://localhost:8000/api/tramites')
+    this.http.get<Tramite[]>(`http://localhost:8000/api/tramites?client_id=${this.clientId}`)
       .subscribe({
         next: (data) => {
           this.tramites = data;
@@ -93,6 +96,8 @@ export class TramitesCrudComponent implements OnInit {
       alert('Por favor completa todos los campos obligatorios.');
       return;
     }
+
+    this.formTramite.client_id = this.clientId;
 
     if (this.isEditing && this.formTramite.id) {
       // Actualizar Trámite
@@ -135,7 +140,7 @@ export class TramitesCrudComponent implements OnInit {
 
   confirmarEliminar(): void {
     if (this.tramiteToDeleteId !== null) {
-      this.http.delete(`http://localhost:8000/api/tramites/${this.tramiteToDeleteId}`)
+      this.http.delete(`http://localhost:8000/api/tramites/${this.tramiteToDeleteId}?client_id=${this.clientId}`)
         .subscribe({
           next: () => {
             this.cerrarConfirmarEliminar();

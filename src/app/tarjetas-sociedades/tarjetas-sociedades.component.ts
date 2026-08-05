@@ -5,6 +5,7 @@ import { HttpClient } from '@angular/common/http';
 
 interface TarjetaSociedad {
   id: number;
+  client_id?: number;
   tipo_tarjeta: string;
   codigo: string;
   expediente: number;
@@ -27,6 +28,7 @@ interface TarjetaSociedad {
 export class TarjetasSociedadesComponent implements OnInit {
   private http = inject(HttpClient);
   private cdr = inject(ChangeDetectorRef);
+  private clientId: number = 20002;
 
   tarjetas: TarjetaSociedad[] = [];
   loading: boolean = false;
@@ -52,7 +54,7 @@ export class TarjetasSociedadesComponent implements OnInit {
 
   cargarTarjetas(): void {
     this.loading = true;
-    this.http.get<TarjetaSociedad[]>('http://localhost:8000/api/tarjetas?tipo_tarjeta=sociedades')
+    this.http.get<TarjetaSociedad[]>(`http://localhost:8000/api/tarjetas?tipo_tarjeta=sociedades&client_id=${this.clientId}`)
       .subscribe({
         next: (data) => {
           this.tarjetas = data;
