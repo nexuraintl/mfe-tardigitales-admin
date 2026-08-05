@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Demostración de Microfrontend Angular</title>
+  
+  <!-- Estilos del Microfrontend (Generados por el build) -->
+  <link rel="stylesheet" href="dist/jcc-portal-mfe/jcc-portal-mfe.css">
+  
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+      background-color: #0f172a;
+      color: #f8fafc;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      min-height: 100vh;
+      box-sizing: border-box;
+    }
+    
+    header {
+      width: 100%;
+      max-width: 800px;
+      padding: 40px 20px 20px 20px;
+      text-align: center;
+      box-sizing: border-box;
+    }
+    
+    h1 {
+      font-size: 2rem;
+      font-weight: 700;
+      color: #3b82f6;
+      margin: 0 0 10px 0;
+    }
+    
+    p {
+      color: #94a3b8;
+      font-size: 1rem;
+      margin: 0 0 30px 0;
+    }
+    
+    .container {
+      width: 100%;
+      max-width: 500px;
+      padding: 0 20px;
+      box-sizing: border-box;
+    }
+    
+    .guide-box {
+      margin-top: 40px;
+      padding: 20px;
+      background: rgba(30, 41, 59, 0.5);
+      border-radius: 12px;
+      border: 1px solid rgba(255, 255, 255, 0.05);
+      font-size: 0.85rem;
+      line-height: 1.5;
+      color: #cbd5e1;
+    }
+    
+    .guide-box h3 {
+      margin-top: 0;
+      color: #3b82f6;
+    }
+    
+    .code-block {
+      background: #020617;
+      padding: 10px 15px;
+      border-radius: 6px;
+      font-family: monospace;
+      color: #38bdf8;
+      overflow-x: auto;
+      margin: 10px 0;
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <h1>Página Host de Prueba</h1>
+    <p>Carga e integración estática de un Microfrontend de Angular (Web Component)</p>
+  </header>
+
+  <div class="container">
+    <!-- Renderizado del Microfrontend de Angular -->
+    <jcc-portal-mfe></jcc-portal-mfe>
+    
+    <div class="guide-box">
+      <h3>Guía de integración en nxPlatform (Blade):</h3>
+      Para usar este microfrontend en tu CMS, simplemente copia los archivos compilados en la carpeta pública e inyéctalos en tu vista:
+      <div class="code-block">&lt;link rel="stylesheet" href="path/to/jcc-portal-mfe.css"&gt;
+&lt;jcc-portal-mfe&gt;&lt;/jcc-portal-mfe&gt;
+&lt;script src="path/to/jcc-portal-mfe.js" defer&gt;&lt;/script&gt;</div>
+    </div>
+  </div>
+
+  <!-- Script del Microfrontend (Generado por el build) -->
+  <script src="dist/jcc-portal-mfe/jcc-portal-mfe.js" defer></script>
+
+</body>
+</html>

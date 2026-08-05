@@ -1,0 +1,238 @@
+<section class="view">
+  <!-- Banner del Módulo -->
+  <section class="card module-banner">
+    <div class="banner-layout">
+      <div class="banner-icon">🪪</div>
+      <div class="banner-content">
+        <div class="banner-title-line">
+          <h2>Tarjeta Digital para Contadores</h2>
+          <span class="banner-badge">PERSONA NATURAL</span>
+        </div>
+        <p>Gestión de solicitudes y credenciales digitales de contadores públicos registrados.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- Barra de Herramientas -->
+  <section class="card toolbar">
+    <button class="btn btn-primary btn-sm">💳 Nueva tarjeta</button>
+    <button class="btn btn-outline-primary btn-sm">Emisión masiva</button>
+  </section>
+
+  <!-- Tarjeta de Filtros -->
+  <section class="card filters-card">
+    <div class="filter-grid">
+      <div class="field">
+        <label for="cardsFilterColumn">Columna</label>
+        <select class="control" id="cardsFilterColumn" [(ngModel)]="filterColumn">
+          <option value="">Seleccione una columna</option>
+          <option value="solicitante">Contador</option>
+          <option value="documento">Documento</option>
+          <option value="matricula">Tarjeta profesional</option>
+          <option value="tarjeta">Estado de tarjeta</option>
+        </select>
+      </div>
+
+      <div class="field">
+        <label for="cardsFilterValue">Valor</label>
+        <input class="control" id="cardsFilterValue" placeholder="Escribe para filtrar..." [(ngModel)]="filterValue">
+      </div>
+    </div>
+  </section>
+
+  <!-- Tabla de Datos -->
+  <section class="card table-card">
+    <div class="table-card-head">
+      <div>
+        <h3>Solicitudes de tarjetas para contadores</h3>
+        <p>Resultados del módulo de persona natural.</p>
+      </div>
+
+      <div class="table-head-actions">
+        <button type="button" class="btn btn-outline-primary">⬇ Exportar CSV</button>
+        <input class="control" placeholder="Buscar en la tabla..." [(ngModel)]="searchQuery">
+        <select class="control" style="min-width:130px" [(ngModel)]="pageSize">
+          <option [ngValue]="5">5 registros</option>
+          <option [ngValue]="10">10 registros</option>
+          <option [ngValue]="25">25 registros</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="table-wrap">
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>No</th>
+            <th>Expediente</th>
+            <th>Contador</th>
+            <th>Documento</th>
+            <th>Tarjeta profesional</th>
+            <th>Correo</th>
+            <th>Tarjeta</th>
+            <th>Fecha</th>
+            <th>Acciones</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let row of paginatedTarjetas; let i = index">
+            <td>{{ recordRangeStart + i }}</td>
+            <td>{{ row.expediente }}</td>
+            <td><strong>{{ row.solicitante }}</strong></td>
+            <td>{{ row.documento }}</td>
+            <td><code>{{ row.matricula }}</code></td>
+            <td>{{ row.correo }}</td>
+            <td>
+              <span class="badge" [ngClass]="{
+                'success': row.tarjeta === 'Activa' || row.tarjeta === 'Emitida',
+                'warning': row.tarjeta === 'Pendiente',
+                'danger': row.tarjeta === 'Cancelada' || row.tarjeta === 'Suspendida'
+              }">{{ row.tarjeta }}</span>
+            </td>
+            <td>{{ row.fecha }}</td>
+            <td>
+              <div class="row-actions">
+                <button class="btn btn-outline-primary btn-sm btn-icon" title="Ver detalle" (click)="abrirDetalle(row)">👁️</button>
+                <button class="btn btn-outline-secondary btn-sm btn-icon" title="Ver tarjeta digital" (click)="abrirTarjeta(row)">🪪</button>
+              </div>
+            </td>
+          </tr>
+          <tr *ngIf="filteredTarjetas.length === 0">
+            <td colspan="9">
+              <div class="empty-state">No se encontraron solicitudes con los filtros seleccionados.</div>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="table-footer">
+      <span>Mostrando {{ recordRangeStart }} a {{ recordRangeEnd }} de {{ filteredTarjetas.length }} registros</span>
+      <div class="pagination">
+        <button class="page-btn" [disabled]="currentPage === 1" (click)="cambiarPagina(currentPage - 1)">&lt;</button>
+        <button class="page-btn" *ngFor="let p of [].constructor(totalPages); let idx = index" [ngClass]="{'active': currentPage === idx + 1}" (click)="cambiarPagina(idx + 1)">
+          {{ idx + 1 }}
+        </button>
+        <button class="page-btn" [disabled]="currentPage === totalPages" (click)="cambiarPagina(currentPage + 1)">&gt;</button>
+      </div>
+    </div>
+  </section>
+</section>
+
+<!-- Modal de Detalle -->
+<div class="modal-backdrop" [ngClass]="{'open': isDetailModalOpen}" *ngIf="isDetailModalOpen && selectedTarjeta" (click)="cerrarDetalle()">
+  <div class="modal" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <div>
+        <h3>Detalle de Solicitud</h3>
+        <p>Código: {{ selectedTarjeta.codigo }}</p>
+      </div>
+      <button class="close-btn" (click)="cerrarDetalle()">×</button>
+    </div>
+    <div class="modal-body">
+      <div class="detail-grid">
+        <div class="detail-item">
+          <label>Expediente</label>
+          <strong>{{ selectedTarjeta.expediente }}</strong>
+        </div>
+        <div class="detail-item">
+          <label>Solicitante</label>
+          <strong>{{ selectedTarjeta.solicitante }}</strong>
+        </div>
+        <div class="detail-item">
+          <label>Documento</label>
+          <strong>{{ selectedTarjeta.documento }}</strong>
+        </div>
+        <div class="detail-item">
+          <label>Tarjeta Profesional</label>
+          <strong>{{ selectedTarjeta.matricula }}</strong>
+        </div>
+        <div class="detail-item">
+          <label>Correo Electrónico</label>
+          <strong>{{ selectedTarjeta.correo }}</strong>
+        </div>
+        <div class="detail-item">
+          <label>Estado de Tarjeta</label>
+          <span class="badge success">{{ selectedTarjeta.tarjeta }}</span>
+        </div>
+        <div class="detail-item">
+          <label>Fecha de Emisión</label>
+          <strong>{{ selectedTarjeta.fecha }}</strong>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-outline-secondary" (click)="cerrarDetalle()">Cerrar</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal de Tarjeta Profesional Digital (Premium Aesthetic) -->
+<div class="modal-backdrop" [ngClass]="{'open': isCardModalOpen}" *ngIf="isCardModalOpen && selectedTarjeta" (click)="cerrarTarjeta()">
+  <div class="modal card-modal" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <h3>Visualización de Tarjeta Profesional</h3>
+      <button class="close-btn" (click)="cerrarTarjeta()">×</button>
+    </div>
+    
+    <div class="modal-body card-render-container" style="display:flex; justify-content:center; align-items:center; padding: 25px 0;">
+      <!-- Credencial Digital Premium -->
+      <div class="virtual-card">
+        <div class="virtual-card-front">
+          <div class="card-glow"></div>
+          <div class="card-front-header">
+            <div class="card-logo-area">
+              <span class="card-emblem">🇨🇴</span>
+              <div>
+                <h2>JUNTA CENTRAL</h2>
+                <h3>DE CONTADORES</h3>
+              </div>
+            </div>
+            <div class="card-type-tag">CONTADOR PÚBLICO</div>
+          </div>
+          
+          <div class="card-front-body">
+            <div class="card-photo-box">
+              <div class="card-photo-avatar">👤</div>
+            </div>
+            
+            <div class="card-info-box">
+              <div class="card-holder-name">{{ selectedTarjeta.solicitante }}</div>
+              <div class="card-holder-meta">
+                <div>
+                  <small>DOCUMENTO</small>
+                  <strong>{{ selectedTarjeta.documento }}</strong>
+                </div>
+                <div>
+                  <small>TARJETA PROFESIONAL</small>
+                  <strong>{{ selectedTarjeta.matricula }}</strong>
+                </div>
+              </div>
+            </div>
+
+            <!-- Código QR Simulado -->
+            <div class="card-qr-box">
+              <div class="qr-matrix-grid">
+                <div *ngFor="let row of [].constructor(15); let r = index" class="qr-row">
+                  <div *ngFor="let col of [].constructor(15); let c = index" 
+                       class="qr-dot" 
+                       [ngClass]="{'black': getQrDot(r, c)}">
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          
+          <div class="card-front-footer">
+            <span>República de Colombia</span>
+            <span>VIGENTE</span>
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <div class="modal-footer">
+      <button class="btn btn-outline-secondary" (click)="cerrarTarjeta()">Cerrar</button>
+    </div>
+  </div>
+</div>
