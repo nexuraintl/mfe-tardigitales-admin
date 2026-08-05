@@ -1,0 +1,241 @@
+<section class="view">
+  <header class="page-header">
+    <div>
+      <h1>Gestión de Trámites Oficiales</h1>
+      <p>Administre los trámites, costos y requisitos para los contadores y sociedades de la JCC.</p>
+    </div>
+
+    <div class="header-actions">
+      <button class="btn btn-outline-primary" (click)="obtenerTramites()">🔄 Actualizar Tabla</button>
+      <button class="btn btn-primary" (click)="abrirCrear()">＋ Crear Trámite</button>
+    </div>
+  </header>
+
+  <!-- Estado de Carga / Errores -->
+  <div *ngIf="loading" class="empty-state">
+    Cargando trámites desde el microservicio...
+  </div>
+
+  <div *ngIf="errorMsg" class="card" style="border-left: 4px solid #d93025; padding: 15px; margin-bottom: 20px; background: #fce8e6;">
+    <strong style="color: #c5221f; font-size: 13px;">Error de Conexión:</strong>
+    <p style="margin: 5px 0 0 0; color: #202124; font-size: 12px;">{{ errorMsg }}</p>
+  </div>
+
+  <!-- Tabla de Trámites -->
+  <section class="card table-card" *ngIf="!loading">
+    <div class="table-card-head">
+      <div>
+        <h3>Trámites Activos en Base de Datos</h3>
+        <p>Utilice las acciones de edición y eliminación para administrar cada registro en tiempo real en MySQL.</p>
+      </div>
+    </div>
+
+    <div class="table-wrap">
+      <table class="history-table">
+        <thead>
+          <tr>
+            <th style="width: 60px;">ID</th>
+            <th>Nombre del Trámite</th>
+            <th style="width: 150px;">Tipo de Trámite</th>
+            <th style="width: 130px;">Costo</th>
+            <th style="width: 100px;">Estado</th>
+            <th>Descripción</th>
+            <th style="width: 110px;">Acciones</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let item of tramites">
+            <td>#{{ item.id }}</td>
+            <td><strong>{{ item.nombre }}</strong></td>
+            <td>
+              <span class="channel-label">
+                <span *ngIf="item.tipo === 'Contador Público'">👤</span>
+                <span *ngIf="item.tipo === 'Sociedad'">🏢</span>
+                {{ item.tipo }}
+              </span>
+            </td>
+            <td>
+              <strong>${{ item.costo.toLocaleString('es-CO') }}</strong>
+            </td>
+            <td>
+              <span 
+                class="badge" 
+                [ngClass]="{
+                  'success': item.estado === 'Activo',
+                  'danger': item.estado === 'Inactivo'
+                }"
+              >
+                {{ item.estado }}
+              </span>
+            </td>
+            <td style="max-width: 300px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" [title]="item.descripcion">
+              {{ item.descripcion }}
+            </td>
+            <td>
+              <div style="display: flex; gap: 8px;">
+                <button 
+                  type="button" 
+                  class="btn btn-outline-primary btn-sm btn-icon" 
+                  title="Editar trámite"
+                  (click)="abrirEditar(item)"
+                >
+                  ✏️
+                </button>
+                <button 
+                  type="button" 
+                  class="btn btn-outline-danger btn-sm btn-icon" 
+                  title="Eliminar trámite"
+                  *ngIf="item.id"
+                  (click)="eliminarTramite(item.id)"
+                >
+                  🗑️
+                </button>
+              </div>
+            </td>
+          </tr>
+          <tr *ngIf="tramites.length === 0">
+            <td colspan="7">
+              <div class="empty-state">
+                No hay trámites registrados en la base de datos de Laragon.
+              </div>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="table-footer">
+      <span>
+        Mostrando {{ tramites.length }} trámites registrados en MySQL.
+      </span>
+    </div>
+  </section>
+</section>
+
+<!-- Modal de Formulario CRUD (Creación / Edición) -->
+<div class="modal-backdrop" [ngClass]="{'open': modalOpen}" *ngIf="modalOpen" (click)="cerrarModal()">
+  <div class="modal" (click)="$event.stopPropagation()" style="max-width: 600px;">
+    <div class="modal-header">
+      <div>
+        <h3>{{ isEditing ? 'Editar Trámite' : 'Registrar Nuevo Trámite' }}</h3>
+        <p>{{ isEditing ? 'Modifique los campos correspondientes.' : 'Complete el formulario para guardar el trámite en MySQL.' }}</p>
+      </div>
+      <button type="button" class="close-btn" (click)="cerrarModal()">×</button>
+    </div>
+    
+    <div class="modal-body">
+      <form (ngSubmit)="guardarTramite()" #tramiteForm="ngForm" style="display: flex; flex-direction: column; gap: 15px;">
+        
+        <!-- Nombre -->
+        <div class="field">
+          <label for="tramiteNombre" style="font-weight: 700; font-size: 11px; text-transform: uppercase; color: #5f6368; display: block; margin-bottom: 5px;">Nombre del Trámite *</label>
+          <input 
+            type="text" 
+            id="tramiteNombre" 
+            name="nombre"
+            class="control" 
+            required 
+            placeholder="Ej. Inscripción de Tarjeta Profesional"
+            [(ngModel)]="formTramite.nombre"
+            style="width: 100%; box-sizing: border-box;"
+          >
+        </div>
+
+        <div style="display: flex; gap: 15px;">
+          <!-- Tipo -->
+          <div class="field" style="flex: 1;">
+            <label for="tramiteTipo" style="font-weight: 700; font-size: 11px; text-transform: uppercase; color: #5f6368; display: block; margin-bottom: 5px;">Tipo de Trámite</label>
+            <select 
+              id="tramiteTipo" 
+              name="tipo"
+              class="control" 
+              [(ngModel)]="formTramite.tipo"
+              style="width: 100%; box-sizing: border-box;"
+            >
+              <option value="Contador Público">Contador Público</option>
+              <option value="Sociedad">Sociedad</option>
+            </select>
+          </div>
+
+          <!-- Costo -->
+          <div class="field" style="flex: 1;">
+            <label for="tramiteCosto" style="font-weight: 700; font-size: 11px; text-transform: uppercase; color: #5f6368; display: block; margin-bottom: 5px;">Costo (COP) *</label>
+            <input 
+              type="number" 
+              id="tramiteCosto" 
+              name="costo"
+              class="control" 
+              required 
+              min="0"
+              [(ngModel)]="formTramite.costo"
+              style="width: 100%; box-sizing: border-box;"
+            >
+          </div>
+        </div>
+
+        <div style="display: flex; gap: 15px;">
+          <!-- Estado -->
+          <div class="field" style="flex: 1;">
+            <label for="tramiteEstado" style="font-weight: 700; font-size: 11px; text-transform: uppercase; color: #5f6368; display: block; margin-bottom: 5px;">Estado</label>
+            <select 
+              id="tramiteEstado" 
+              name="estado"
+              class="control" 
+              [(ngModel)]="formTramite.estado"
+              style="width: 100%; box-sizing: border-box;"
+            >
+              <option value="Activo">Activo</option>
+              <option value="Inactivo">Inactivo</option>
+            </select>
+          </div>
+          <div style="flex: 1;"></div>
+        </div>
+
+        <!-- Descripción -->
+        <div class="field">
+          <label for="tramiteDesc" style="font-weight: 700; font-size: 11px; text-transform: uppercase; color: #5f6368; display: block; margin-bottom: 5px;">Descripción Detallada</label>
+          <textarea 
+            id="tramiteDesc" 
+            name="descripcion"
+            class="control" 
+            rows="4" 
+            placeholder="Describa brevemente los requisitos o alcance del trámite..."
+            [(ngModel)]="formTramite.descripcion"
+            style="width: 100%; box-sizing: border-box; resize: vertical;"
+          ></textarea>
+        </div>
+        
+      </form>
+    </div>
+    
+    <div class="modal-footer">
+      <button type="button" class="btn btn-outline-secondary" (click)="cerrarModal()">Cancelar</button>
+      <button type="button" class="btn btn-primary" (click)="guardarTramite()">
+        {{ isEditing ? 'Guardar Cambios' : 'Registrar Trámite' }}
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal de Confirmación de Eliminación -->
+<div class="modal-backdrop" [ngClass]="{'open': deleteModalOpen}" *ngIf="deleteModalOpen" (click)="cerrarConfirmarEliminar()">
+  <div class="modal" (click)="$event.stopPropagation()" style="max-width: 450px; border-top: 4px solid var(--danger);">
+    <div class="modal-header">
+      <div>
+        <h3 style="color: var(--danger); display: flex; align-items: center; gap: 8px;">
+          ⚠️ Eliminar Registro
+        </h3>
+        <p>¿Estás seguro de que deseas eliminar permanentemente este trámite? Esta acción no se puede deshacer.</p>
+      </div>
+      <button type="button" class="close-btn" (click)="cerrarConfirmarEliminar()">×</button>
+    </div>
+    
+    <div class="modal-footer" style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 15px;">
+      <button type="button" class="btn btn-outline-secondary" (click)="cerrarConfirmarEliminar()">Cancelar</button>
+      <button type="button" class="btn btn-danger" (click)="confirmarEliminar()" style="background-color: var(--danger); color: white; border: none; padding: 8px 16px; border-radius: 9px; cursor: pointer; font-weight: 500;">
+        Confirmar Eliminación
+      </button>
+    </div>
+  </div>
+</div>
+

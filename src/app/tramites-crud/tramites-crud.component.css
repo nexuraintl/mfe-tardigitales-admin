@@ -1,0 +1,10 @@
+/* Estilos específicos para la vista de trámites (CRUD) */
+.btn-outline-danger {
+  color: #c5221f;
+  background-color: transparent;
+  border-color: #dee2e6;
+}
+.btn-outline-danger:hover {
+  background-color: #fce8e6;
+  border-color: #f5c2c7;
+}
