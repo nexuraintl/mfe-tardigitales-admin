@@ -5,6 +5,7 @@ import { HttpClient } from '@angular/common/http';
 
 interface NotificationItem {
   id: number;
+  client_id?: number;
   titulo: string;
   canal: string;
   audiencia: string;
@@ -25,6 +26,7 @@ interface NotificationItem {
 export class NotificationsHistoryComponent implements OnInit {
   private http = inject(HttpClient);
   private cdr = inject(ChangeDetectorRef);
+  private clientId: number = 20002;
   
   notificaciones: NotificationItem[] = [];
 
@@ -33,7 +35,7 @@ export class NotificationsHistoryComponent implements OnInit {
   }
 
   cargarNotificaciones(): void {
-    this.http.get<NotificationItem[]>('http://localhost:8000/api/notificaciones')
+    this.http.get<NotificationItem[]>(`http://localhost:8000/api/notificaciones?client_id=${this.clientId}`)
       .subscribe({
         next: (data) => {
           this.notificaciones = data;

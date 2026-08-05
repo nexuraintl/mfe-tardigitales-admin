@@ -15,6 +15,7 @@ import { forkJoin, of } from 'rxjs';
 export class CrearNotificacionComponent {
   private http = inject(HttpClient);
   private router = inject(Router);
+  private clientId: number = 20002;
 
   // Form Fields
   startTime: string = '07:00';
@@ -121,6 +122,7 @@ export class CrearNotificacionComponent {
     // Crear peticiones para cada canal seleccionado
     const requests = canales.map(canal => {
       const payload = {
+        client_id: this.clientId,
         titulo: this.notificationTitle,
         canal: canal,
         audiencia: this.audience,
