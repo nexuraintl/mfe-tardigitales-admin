@@ -5,6 +5,8 @@ import { TarjetasContadoresComponent } from './tarjetas-contadores/tarjetas-cont
 import { TarjetasSociedadesComponent } from './tarjetas-sociedades/tarjetas-sociedades.component';
 import { CrearNotificacionComponent } from './crear-notificacion/crear-notificacion.component';
 import { PlaceholderComponent } from './placeholder/placeholder.component';
+import { ValidadorQrComponent } from './validador-qr/validador-qr.component';
+import { CertificadosComponent } from './certificados/certificados.component';
 
 export const routes: Routes = [
   {
@@ -40,7 +42,7 @@ export const routes: Routes = [
   },
   {
     path: 'certificados',
-    component: PlaceholderComponent
+    component: CertificadosComponent
   },
   {
     path: 'branding',
@@ -48,7 +50,7 @@ export const routes: Routes = [
   },
   {
     path: 'validador-qr',
-    component: PlaceholderComponent
+    component: ValidadorQrComponent
   },
   {
     path: 'auditoria',
