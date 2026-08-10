@@ -7,7 +7,12 @@
     "build": "ng build",
     "build:mfe": "ng build && node build-mfe.js",
     "watch": "ng build --watch --configuration development",
-    "test": "ng test"
+    "test": "ng test",
+    "docker:build": "docker build -t mfe-tardigitales-admin .",
+    "docker:run": "docker run -p 4300:80 mfe-tardigitales-admin",
+    "docker:compose": "docker-compose up -d",
+    "docker:compose:down": "docker-compose down",
+    "docker:compose:rebuild": "docker-compose up -d --build"
   },
   "private": true,
   "packageManager": "npm@11.16.0",

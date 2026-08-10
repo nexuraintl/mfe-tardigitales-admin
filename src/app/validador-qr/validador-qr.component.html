@@ -1,0 +1,62 @@
+<section class="view">
+  <header class="page-header">
+    <div>
+      <h1>Campos del validador (verificación pública)</h1>
+      <p>Defina la información visible al consultar el código QR de una tarjeta.</p>
+    </div>
+    <div class="header-actions">
+      <button type="button" class="btn btn-outline-secondary" (click)="volver()">← Volver</button>
+    </div>
+  </header>
+
+  <div class="qr-validator-content">
+    <section class="card individual-issue-card">
+      <div class="individual-issue-card-header">Seleccione los campos visibles al verificar el QR de una tarjeta</div>
+      <div class="individual-issue-card-body">
+        <form id="qrValidatorForm">
+          <div class="qr-field-list">
+            <label class="qr-field-option">
+              <input type="checkbox" [(ngModel)]="config.val_foto" name="val_foto">
+              <span>Fotografía</span>
+            </label>
+            <label class="qr-field-option">
+              <input type="checkbox" [(ngModel)]="config.val_nombres" name="val_nombres">
+              <span>Nombres</span>
+            </label>
+            <label class="qr-field-option">
+              <input type="checkbox" [(ngModel)]="config.val_matricula" name="val_matricula">
+              <span>Matrícula</span>
+            </label>
+            <label class="qr-field-option">
+              <input type="checkbox" [(ngModel)]="config.val_numero_identificacion" name="val_numero_identificacion">
+              <span>Identificación</span>
+            </label>
+            <label class="qr-field-option">
+              <input type="checkbox" [(ngModel)]="config.val_codigo_tarjeta" name="val_codigo_tarjeta">
+              <span>Código de tarjeta</span>
+            </label>
+            <label class="qr-field-option">
+              <input type="checkbox" [(ngModel)]="config.val_estado" name="val_estado">
+              <span>Estado (vigente)</span>
+            </label>
+          </div>
+        </form>
+
+        <div *ngIf="mensajeExito" class="bulk-result visible" style="margin-bottom:14px; padding:11px 13px; border:1px solid #badbcc; background:#d1e7dd; color:#0f5132; border-radius:6px; font-size:11px;">
+          {{ mensajeExito }}
+        </div>
+        <div *ngIf="mensajeError" class="bulk-result visible error" style="margin-bottom:14px; padding:11px 13px; border:1px solid #f5c2c7; background:#f8d7da; color:#842029; border-radius:6px; font-size:11px;">
+          {{ mensajeError }}
+        </div>
+
+        <div class="qr-validator-footer">
+          <button type="button" class="btn btn-primary btn-sm" (click)="guardarConfiguracion()" [disabled]="loading">
+            <span *ngIf="!loading">Guardar</span>
+            <span *ngIf="loading">Guardando...</span>
+          </button>
+          <small class="qr-validator-note">Aplica a la página pública <code>/demogen/verificar/&lt;token&gt;</code>.</small>
+        </div>
+      </div>
+    </section>
+  </div>
+</section>
