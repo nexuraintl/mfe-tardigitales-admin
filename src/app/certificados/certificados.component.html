@@ -1,0 +1,71 @@
+<section class="view">
+  <header class="page-header">
+    <div>
+      <h1>Certificados</h1>
+      <p>Consulte y descargue los certificados disponibles para contadores y sociedades.</p>
+    </div>
+  </header>
+
+  <section class="card table-card" style="margin-top:18px">
+    <div class="table-card-head">
+      <div>
+        <h3>Certificados generados</h3>
+        <p>Documentos emitidos por la Junta Central de Contadores.</p>
+      </div>
+      <div class="table-head-actions">
+        <button type="button" class="btn btn-outline-primary" style="white-space: nowrap; display: inline-flex; align-items: center; gap: 6px;" (click)="exportarCSV()">⬇ Exportar CSV</button>
+        <input class="control" placeholder="Buscar documento o expediente..." [(ngModel)]="searchQuery">
+        <select class="control" style="min-width:130px" [(ngModel)]="pageSize" (change)="currentPage = 1">
+          <option [ngValue]="5">5 registros</option>
+          <option [ngValue]="10">10 registros</option>
+          <option [ngValue]="25">25 registros</option>
+        </select>
+      </div>
+    </div>
+    
+    <div class="table-wrap">
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>No</th>
+            <th>Expediente</th>
+            <th>Contador/sociedad</th>
+            <th>Documento</th>
+            <th>Tarjeta profesional</th>
+            <th>Correo</th>
+            <th>Acciones</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let row of paginatedCertificados; let idx = index">
+            <td>{{ recordRangeStart + idx }}</td>
+            <td>{{ row.expediente }}</td>
+            <td>{{ row.titular }}</td>
+            <td>{{ row.documento }}</td>
+            <td>{{ row.matricula }}</td>
+            <td>{{ row.correo || 'No registrado' }}</td>
+            <td>
+              <button class="btn btn-outline-primary btn-sm btn-icon" (click)="descargarPdf(row)" title="Descargar certificado" aria-label="Descargar certificado">⬇</button>
+            </td>
+          </tr>
+          <tr *ngIf="filteredCertificados.length === 0">
+            <td colspan="7">
+              <div class="empty-state">No se encontraron certificados generados.</div>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="table-footer">
+      <span>Mostrando {{ recordRangeStart }} a {{ recordRangeEnd }} de {{ filteredCertificados.length }} registros</span>
+      <div class="pagination">
+        <button class="page-btn" [disabled]="currentPage === 1" (click)="cambiarPagina(currentPage - 1)">&lt;</button>
+        <button class="page-btn" *ngFor="let p of [].constructor(totalPages); let idx = index" [ngClass]="{'active': currentPage === idx + 1}" (click)="cambiarPagina(idx + 1)">
+          {{ idx + 1 }}
+        </button>
+        <button class="page-btn" [disabled]="currentPage === totalPages" (click)="cambiarPagina(currentPage + 1)">&gt;</button>
+      </div>
+    </div>
+  </section>
+</section>
