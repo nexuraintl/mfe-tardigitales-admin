@@ -1,0 +1,19 @@
+version: '3.8'
+
+services:
+  angular-app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: mfe-tardigitales-admin
+    ports:
+      - "4300:80"
+    restart: unless-stopped
+    environment:
+      - NODE_ENV=production
+    networks:
+      - angular-network
+
+networks:
+  angular-network:
+    driver: bridge
