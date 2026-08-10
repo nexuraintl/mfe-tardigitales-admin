@@ -1,4 +1,4 @@
-import { Component, OnInit, inject, ChangeDetectorRef } from '@angular/core';
+import { Component, OnInit, inject, ChangeDetectorRef, HostListener } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { HttpClient } from '@angular/common/http';
@@ -47,6 +47,23 @@ export class TarjetasSociedadesComponent implements OnInit {
 
   // Semilla QR para simular matriz dinámica
   qrSeed: number = 0.8;
+
+  // Control de vistas (listado, emision-individual, emision-masiva, historial)
+  vistaActiva: 'listado' | 'emision-individual' | 'emision-masiva' | 'historial' = 'listado';
+  selectedTarjetaHistorial: any = null;
+
+  // Variables para la creación de tarjeta (Emisión individual)
+  nuevaIdentificacion: string = '';
+  busquedaRealizada: boolean = false;
+  cargandoBusqueda: boolean = false;
+  datosConsulta: any = null;
+  mensajeExito: string = '';
+  mensajeError: string = '';
+
+  // Variables para Emisión Masiva
+  bulkFile: File | null = null;
+  bulkResultText: string = '';
+  bulkResultClass: string = 'bulk-result';
 
   ngOnInit(): void {
     this.cargarTarjetas();
@@ -147,5 +164,218 @@ export class TarjetasSociedadesComponent implements OnInit {
   // Simulador de matriz QR en base a un Seed
   getQrDot(x: number, y: number): boolean {
     return ((x * 17 + this.qrSeed * 13 + x * y * 5) % 11) < 5;
+  }
+
+  // Métodos para Emisión Individual (Nueva tarjeta de sociedad)
+  abrirNuevaTarjeta(): void {
+    this.vistaActiva = 'emision-individual';
+    this.nuevaIdentificacion = '';
+    this.busquedaRealizada = false;
+    this.datosConsulta = null;
+    this.mensajeExito = '';
+    this.mensajeError = '';
+  }
+
+  cerrarNuevaTarjeta(): void {
+    this.vistaActiva = 'listado';
+    this.nuevaIdentificacion = '';
+    this.busquedaRealizada = false;
+    this.datosConsulta = null;
+    this.mensajeExito = '';
+    this.mensajeError = '';
+  }
+
+  // Métodos para Emisión Masiva (Sociedades)
+  abrirEmisionMasiva(): void {
+    this.vistaActiva = 'emision-masiva';
+    this.bulkFile = null;
+    this.bulkResultText = '';
+    this.bulkResultClass = 'bulk-result';
+  }
+
+  cerrarEmisionMasiva(): void {
+    this.vistaActiva = 'listado';
+    this.bulkFile = null;
+    this.bulkResultText = '';
+    this.bulkResultClass = 'bulk-result';
+  }
+
+  seleccionarArchivo(event: any): void {
+    const files = event.target.files;
+    if (files && files.length > 0) {
+      this.bulkFile = files[0];
+    } else {
+      this.bulkFile = null;
+    }
+  }
+
+  descargarPlantillaCSV(): void {
+    const header = "nit\n";
+    const example = "900123456-7\n";
+    const blob = new Blob([header + example], { type: "text/csv;charset=utf-8" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = "plantilla_emision_sociedades.csv";
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+    URL.revokeObjectURL(url);
+  }
+
+  procesarEmisionMasiva(): void {
+    if (!this.bulkFile) {
+      this.bulkResultText = "Seleccione un archivo CSV o TXT antes de procesar.";
+      this.bulkResultClass = "bulk-result visible error";
+      return;
+    }
+    
+    if (!/\.(csv|txt)$/i.test(this.bulkFile.name)) {
+      this.bulkResultText = "El archivo debe tener extensión .csv o .txt.";
+      this.bulkResultClass = "bulk-result visible error";
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = () => {
+      const fileContent = reader.result as string;
+      const rows = fileContent.split(/\r?\n/).filter(row => row.trim());
+      const records = Math.max(0, rows.length - 1);
+      
+      if (!records) {
+        this.bulkResultText = "La plantilla no contiene registros para procesar.";
+        this.bulkResultClass = "bulk-result visible error";
+        return;
+      }
+      
+      this.bulkResultText = `Archivo validado: ${records} sociedades listas para emisión. La integración con el backend procesará duplicados, errores y notificaciones.`;
+      this.bulkResultClass = "bulk-result visible";
+      this.cdr.detectChanges();
+    };
+    reader.onerror = () => {
+      this.bulkResultText = "No fue posible leer el archivo seleccionado.";
+      this.bulkResultClass = "bulk-result visible error";
+      this.cdr.detectChanges();
+    };
+    reader.readAsText(this.bulkFile);
+  }
+
+  consultarSociedad(): void {
+    const identification = this.nuevaIdentificacion.trim();
+    if (!identification) {
+      this.mensajeError = "Ingrese el NIT de la sociedad.";
+      return;
+    }
+    this.mensajeError = '';
+    this.mensajeExito = '';
+    this.cargandoBusqueda = true;
+
+    // Buscar en tarjetas locales si ya existe por NIT/documento
+    const row = this.tarjetas.find(item =>
+      item.documento.replace(/\D/g, '') === identification.replace(/\D/g, '')
+    );
+
+    if (row) {
+      this.datosConsulta = {
+        razonSocial: row.solicitante,
+        nit: row.documento,
+        registro: row.matricula,
+        expediente: row.expediente,
+        correo: row.correo || `contacto.${identification.slice(-4)}@example.com`,
+        representante: row.representante || "Representante Legal Registrado",
+        resolucion: `Resolución ${row.id.toString().padStart(4, '0')} de 2026`,
+        existe: true
+      };
+    } else {
+      // Datos simulados idénticos a la plantilla
+      this.datosConsulta = {
+        razonSocial: "Sociedad de Contadores Consultada",
+        nit: identification,
+        registro: "SOC-" + identification.slice(-6).padStart(6, '0'),
+        expediente: Math.floor(100000 + Math.random() * 900000),
+        correo: `contacto.${identification.slice(-4)}@example.com`,
+        representante: "Representante Legal Simulado",
+        resolucion: `Resolución ${identification.slice(-4)} de 2026`,
+        existe: false
+      };
+    }
+
+    this.busquedaRealizada = true;
+    this.cargandoBusqueda = false;
+    this.cdr.detectChanges();
+  }
+
+  confirmarEmision(): void {
+    if (!this.datosConsulta) return;
+
+    this.loading = true;
+    this.mensajeError = '';
+    this.mensajeExito = '';
+
+    const payload = {
+      tipo_tarjeta: "sociedades",
+      codigo: `TJS-${new Date().getTime()}-${this.datosConsulta.registro.replace(/\D/g, '')}`,
+      expediente: this.datosConsulta.expediente,
+      solicitante: this.datosConsulta.razonSocial,
+      documento: this.datosConsulta.nit,
+      matricula: this.datosConsulta.registro,
+      correo: this.datosConsulta.correo,
+      representante: this.datosConsulta.representante,
+      tarjeta: "Activa",
+      fecha: new Date().toISOString().split('T')[0],
+      client_id: this.clientId
+    };
+
+    this.http.post('http://localhost:8000/api/tarjetas', payload)
+      .subscribe({
+        next: (response) => {
+          this.mensajeExito = "Emisión confirmada correctamente.";
+          this.loading = false;
+          this.cargarTarjetas();
+          this.cdr.detectChanges();
+        },
+        error: (err) => {
+          console.error('Error al emitir tarjeta de sociedad:', err);
+          this.mensajeError = "Error al emitir la tarjeta en el servidor.";
+          this.loading = false;
+          this.cdr.detectChanges();
+        }
+      });
+  }
+
+  // Variables y métodos para menú desplegable de acciones
+  activeMenuId: number | null = null;
+
+  toggleActionsMenu(event: Event, id: number): void {
+    event.stopPropagation();
+    this.activeMenuId = this.activeMenuId === id ? null : id;
+  }
+
+  @HostListener('document:click', ['$event'])
+  onDocumentClick(event: Event): void {
+    this.activeMenuId = null;
+  }
+
+  abrirHistorial(t: TarjetaSociedad): void {
+    this.selectedTarjeta = t;
+    this.vistaActiva = 'historial';
+    this.selectedTarjetaHistorial = null;
+    this.http.get(`http://localhost:8000/api/tarjetas/${t.id}/historial?client_id=${this.clientId}`)
+      .subscribe({
+        next: (res) => {
+          this.selectedTarjetaHistorial = res;
+          this.cdr.detectChanges();
+        },
+        error: (err) => {
+          console.error('Error al cargar historial de la tarjeta de sociedad:', err);
+          this.cdr.detectChanges();
+        }
+      });
+  }
+
+  cerrarHistorial(): void {
+    this.vistaActiva = 'listado';
+    this.selectedTarjeta = null;
+    this.selectedTarjetaHistorial = null;
   }
 }
