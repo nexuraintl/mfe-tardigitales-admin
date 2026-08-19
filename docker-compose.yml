@@ -7,7 +7,7 @@ services:
       dockerfile: Dockerfile
     container_name: mfe-tardigitales-admin
     ports:
-      - "4300:80"
+      - "4300:8080"
     restart: unless-stopped
     environment:
       - NODE_ENV=production
