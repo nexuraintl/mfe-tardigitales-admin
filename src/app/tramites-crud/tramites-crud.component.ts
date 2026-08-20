@@ -32,11 +32,11 @@ export class TramitesCrudComponent implements OnInit {
   // Controladores del Modal de Formulario
   modalOpen: boolean = false;
   isEditing: boolean = false;
-  
+
   // Controladores del Modal de Confirmación de Eliminación
   deleteModalOpen: boolean = false;
   tramiteToDeleteId: number | null = null;
-  
+
   // Datos del Formulario
   formTramite: Tramite = this.getEmptyTramite();
 
@@ -58,7 +58,7 @@ export class TramitesCrudComponent implements OnInit {
   obtenerTramites(): void {
     this.loading = true;
     this.errorMsg = '';
-    this.http.get<Tramite[]>(`http://localhost:8000/api/tramites?client_id=${this.clientId}`)
+    this.http.get<Tramite[]>(`https://preproduccion-tardigitales.nexura.com/apig/tardigitales/tramites?client_id=${this.clientId}`)
       .subscribe({
         next: (data) => {
           this.tramites = data;
@@ -101,7 +101,7 @@ export class TramitesCrudComponent implements OnInit {
 
     if (this.isEditing && this.formTramite.id) {
       // Actualizar Trámite
-      this.http.put<Tramite>(`http://localhost:8000/api/tramites/${this.formTramite.id}`, this.formTramite)
+      this.http.put<Tramite>(`https://preproduccion-tardigitales.nexura.com/apig/tardigitales/tramites/${this.formTramite.id}`, this.formTramite)
         .subscribe({
           next: () => {
             this.cerrarModal();
@@ -114,7 +114,7 @@ export class TramitesCrudComponent implements OnInit {
         });
     } else {
       // Crear Trámite
-      this.http.post<Tramite>('http://localhost:8000/api/tramites', this.formTramite)
+      this.http.post<Tramite>('http://localhost:8000/tramites', this.formTramite)
         .subscribe({
           next: () => {
             this.cerrarModal();
@@ -140,7 +140,7 @@ export class TramitesCrudComponent implements OnInit {
 
   confirmarEliminar(): void {
     if (this.tramiteToDeleteId !== null) {
-      this.http.delete(`http://localhost:8000/api/tramites/${this.tramiteToDeleteId}?client_id=${this.clientId}`)
+      this.http.delete(`https://preproduccion-tardigitales.nexura.com/apig/tardigitales/tramites/${this.tramiteToDeleteId}?client_id=${this.clientId}`)
         .subscribe({
           next: () => {
             this.cerrarConfirmarEliminar();
