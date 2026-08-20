@@ -18,15 +18,15 @@
 
 | Campo | Valor |
 |---|---|
-| Proyecto GCP | `pre-qa-functions` |
+| Proyecto GCP | `nexura-preproduccion-qa` |
 | Ambiente | Preproducción |
-| Región | `us-central1` |
+| Región | `us-east1` |
 | Servicio Cloud Run | `prem-mfetardigitales-notificaciones` |
-| URL pública | https://prem-mfetardigitales-notificaciones-ghlnutfdwq-uc.a.run.app |
-| Exposición | **Directa y pública** — sin API Gateway. Decisión explícita para este servicio (a diferencia de `prem-web-clientes`/`prem-web-asesores`, que sí están detrás de `api-gateway@pre-qa-functions.iam.gserviceaccount.com`). Ver sección 5. |
+| URL pública | `[pendiente de primer despliegue en nexura-preproduccion-qa]` |
+| Exposición | **Directa y pública** — sin API Gateway. Decisión explícita para este servicio. |
 | Servidor de contenido | Nginx (`nginxinc/nginx-unprivileged:alpine`), sirviendo el build estático de Angular |
-| Backend consumido | Ninguno integrado todavía — los componentes actuales no llaman a ninguna API externa. El backend natural por convención de nombres sería `ms_tardigitales_notificaciones` (repo ADO `Nexura Platform Microservicios`), pero la integración no está cableada en el código a la fecha de este documento. |
-| Artifact Registry | `us-central1-docker.pkg.dev/pre-qa-functions/cloud-run-source-deploy/mfe-tardigitales-admin/prem-mfetardigitales-notificaciones` |
+| Backend consumido | Ninguno integrado todavía — los componentes actuales no llaman a ninguna API externa. El backend natural por convención de nombres es `prem-tardigitales-notificaciones` (repo ADO `ms_tardigitales_notificaciones`, mismo proyecto GCP `nexura-preproduccion-qa`, región `us-east1`), pero la integración no está cableada en el código a la fecha de este documento. |
+| Artifact Registry | `us-east1-docker.pkg.dev/nexura-preproduccion-qa/cloud-run-source-deploy/mfe-tardigitales-admin/prem-mfetardigitales-notificaciones` |
 
 ## 3. Rutas de la aplicación
 
@@ -69,7 +69,7 @@ No hay `.env`, ni integración con Secret Manager. Si en el futuro el MFE consum
 
 | Cuenta de servicio | Rol | Uso |
 |---|---|---|
-| `58937908768-compute@developer.gserviceaccount.com` | Runtime del servicio Cloud Run (`run-sa`) y ejecución de Cloud Build (`deploy-sa`) | Cuenta de servicio de cómputo por defecto del proyecto — mismo patrón usado por el resto de servicios `prem-*`/`qa-*` en `pre-qa-functions`. No hay separación run-sa/deploy-sa dedicada en este proyecto. |
+| `999421923761-compute@developer.gserviceaccount.com` | Runtime del servicio Cloud Run (`run-sa`) y ejecución de Cloud Build (`deploy-sa`) | Cuenta de servicio de cómputo por defecto del proyecto — mismo patrón usado por el resto de servicios `prem-*`/`qam-*` en `nexura-preproduccion-qa`. No hay separación run-sa/deploy-sa dedicada en este proyecto. |
 | `allUsers` | `roles/run.invoker` | Acceso público directo a la URL del servicio (sin autenticación), por decisión explícita para este MFE. |
 
 ## 6. Despliegue
@@ -112,4 +112,4 @@ Este servicio es un microfrontend, no un microservicio FastAPI, por lo que las s
 | Endpoints `/v1/...` | No aplica — no hay API de negocio en este repo. |
 | `requirements.txt` / `requirements-dev.txt` | Reemplazado por `package.json` (Node/Angular). |
 | Ingress `internal-and-cloud-load-balancing` detrás de API Gateway | **Deliberadamente no aplicado** — este servicio es público y de acceso directo por decisión de producto. Puede revisarse en el futuro para exigir token (IAM invoker) si cambia el requerimiento. |
-| `run-sa`/`deploy-sa` dedicadas | No implementado — usa la cuenta de servicio de cómputo por defecto, igual que el resto de servicios del proyecto `pre-qa-functions`. |
+| `run-sa`/`deploy-sa` dedicadas | No implementado — usa la cuenta de servicio de cómputo por defecto, igual que el resto de servicios del proyecto `nexura-preproduccion-qa`. |
