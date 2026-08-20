@@ -39,7 +39,7 @@ export class ValidadorQrComponent implements OnInit {
     this.mensajeError = '';
     this.mensajeExito = '';
 
-    this.http.get<any>(`http://localhost:8000/api/validador-qr/config?client_id=${this.clientId}`)
+    this.http.get<any>(`https://preproduccion-tardigitales.nexura.com/apig/tardigitales/validador-qr/config?client_id=${this.clientId}`)
       .subscribe({
         next: (data) => {
           this.config = {
@@ -77,7 +77,7 @@ export class ValidadorQrComponent implements OnInit {
       val_estado: this.config.val_estado ? 1 : 0
     };
 
-    this.http.post('http://localhost:8000/api/validador-qr/config', payload)
+    this.http.post('http://localhost:8000/validador-qr/config', payload)
       .subscribe({
         next: (res: any) => {
           this.mensajeExito = 'Configuración guardada correctamente.';
