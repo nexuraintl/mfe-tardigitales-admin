@@ -40,7 +40,7 @@ export class CertificadosComponent implements OnInit {
 
   cargarCertificados(): void {
     this.loading = true;
-    this.http.get<Certificado[]>(`http://localhost:8000/api/certificados?client_id=${this.clientId}`)
+    this.http.get<Certificado[]>(`https://preproduccion-tardigitales.nexura.com/apig/tardigitales/certificados?client_id=${this.clientId}`)
       .subscribe({
         next: (data) => {
           this.certificados = data;

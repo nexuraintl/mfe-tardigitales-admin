@@ -27,7 +27,7 @@ export class NotificationsHistoryComponent implements OnInit {
   private http = inject(HttpClient);
   private cdr = inject(ChangeDetectorRef);
   private clientId: number = 20002;
-  
+
   notificaciones: NotificationItem[] = [];
 
   ngOnInit(): void {
@@ -35,7 +35,7 @@ export class NotificationsHistoryComponent implements OnInit {
   }
 
   cargarNotificaciones(): void {
-    this.http.get<NotificationItem[]>(`http://localhost:8000/api/notificaciones?client_id=${this.clientId}`)
+    this.http.get<NotificationItem[]>(`https://preproduccion-tardigitales.nexura.com/apig/tardigitales/notificaciones?client_id=${this.clientId}`)
       .subscribe({
         next: (data) => {
           this.notificaciones = data;
@@ -78,14 +78,14 @@ export class NotificationsHistoryComponent implements OnInit {
   // Filtrado reactivo en tiempo real con blindaje contra valores nulos
   get filteredNotifications(): NotificationItem[] {
     return this.notificaciones.filter(n => {
-      const matchSearch = !this.searchQuery || 
+      const matchSearch = !this.searchQuery ||
         (n.titulo && n.titulo.toLowerCase().includes(this.searchQuery.toLowerCase())) ||
         (n.creadoPor && n.creadoPor.toLowerCase().includes(this.searchQuery.toLowerCase())) ||
         (n.audiencia && n.audiencia.toLowerCase().includes(this.searchQuery.toLowerCase()));
 
       const matchChannel = !this.selectedChannel || n.canal === this.selectedChannel;
       const matchStatus = !this.selectedStatus || n.estado === this.selectedStatus;
-      
+
       // Filtrado por fecha seguro
       let matchDate = true;
       if (this.dateFrom || this.dateTo) {

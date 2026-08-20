@@ -71,7 +71,7 @@ export class TarjetasSociedadesComponent implements OnInit {
 
   cargarTarjetas(): void {
     this.loading = true;
-    this.http.get<TarjetaSociedad[]>(`http://localhost:8000/api/tarjetas?tipo_tarjeta=sociedades&client_id=${this.clientId}`)
+    this.http.get<TarjetaSociedad[]>(`https://preproduccion-tardigitales.nexura.com/apig/tardigitales/tarjetas?tipo_tarjeta=sociedades&client_id=${this.clientId}`)
       .subscribe({
         next: (data) => {
           this.tarjetas = data;
@@ -229,7 +229,7 @@ export class TarjetasSociedadesComponent implements OnInit {
       this.bulkResultClass = "bulk-result visible error";
       return;
     }
-    
+
     if (!/\.(csv|txt)$/i.test(this.bulkFile.name)) {
       this.bulkResultText = "El archivo debe tener extensión .csv o .txt.";
       this.bulkResultClass = "bulk-result visible error";
@@ -241,13 +241,13 @@ export class TarjetasSociedadesComponent implements OnInit {
       const fileContent = reader.result as string;
       const rows = fileContent.split(/\r?\n/).filter(row => row.trim());
       const records = Math.max(0, rows.length - 1);
-      
+
       if (!records) {
         this.bulkResultText = "La plantilla no contiene registros para procesar.";
         this.bulkResultClass = "bulk-result visible error";
         return;
       }
-      
+
       this.bulkResultText = `Archivo validado: ${records} sociedades listas para emisión. La integración con el backend procesará duplicados, errores y notificaciones.`;
       this.bulkResultClass = "bulk-result visible";
       this.cdr.detectChanges();
@@ -326,7 +326,7 @@ export class TarjetasSociedadesComponent implements OnInit {
       client_id: this.clientId
     };
 
-    this.http.post('http://localhost:8000/api/tarjetas', payload)
+    this.http.post('http://localhost:8000/tarjetas', payload)
       .subscribe({
         next: (response) => {
           this.mensajeExito = "Emisión confirmada correctamente.";
@@ -360,7 +360,7 @@ export class TarjetasSociedadesComponent implements OnInit {
     this.selectedTarjeta = t;
     this.vistaActiva = 'historial';
     this.selectedTarjetaHistorial = null;
-    this.http.get(`http://localhost:8000/api/tarjetas/${t.id}/historial?client_id=${this.clientId}`)
+    this.http.get(`https://preproduccion-tardigitales.nexura.com/apig/tardigitales/tarjetas/${t.id}/historial?client_id=${this.clientId}`)
       .subscribe({
         next: (res) => {
           this.selectedTarjetaHistorial = res;

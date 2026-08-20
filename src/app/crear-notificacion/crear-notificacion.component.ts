@@ -133,7 +133,7 @@ export class CrearNotificacionComponent {
         mensaje: this.notificationMessage
       };
 
-      return this.http.post('http://localhost:8000/api/notificaciones', payload);
+      return this.http.post('http://localhost:8000/notificaciones', payload);
     });
 
     forkJoin(requests).subscribe({
