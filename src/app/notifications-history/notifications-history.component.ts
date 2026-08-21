@@ -26,7 +26,7 @@ interface NotificationItem {
 export class NotificationsHistoryComponent implements OnInit {
   private http = inject(HttpClient);
   private cdr = inject(ChangeDetectorRef);
-  private clientId: number = 20002;
+  private clientId: number = 20001;
 
   notificaciones: NotificationItem[] = [];
 
