@@ -25,7 +25,7 @@ export class CertificadosComponent implements OnInit {
   private http = inject(HttpClient);
   private cdr = inject(ChangeDetectorRef);
 
-  clientId: number = 20002;
+  clientId: number = 20001;
   certificados: Certificado[] = [];
   loading: boolean = false;
 
