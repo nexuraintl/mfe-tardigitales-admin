@@ -114,7 +114,7 @@ export class TramitesCrudComponent implements OnInit {
         });
     } else {
       // Crear Trámite
-      this.http.post<Tramite>('http://localhost:8000/tramites', this.formTramite)
+      this.http.post<Tramite>('https://preproduccion-tardigitales.nexura.com/apig/tardigitales/tramites', this.formTramite)
         .subscribe({
           next: () => {
             this.cerrarModal();
