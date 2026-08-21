@@ -133,7 +133,7 @@ export class CrearNotificacionComponent {
         mensaje: this.notificationMessage
       };
 
-      return this.http.post('http://localhost:8000/notificaciones', payload);
+      return this.http.post('https://preproduccion-tardigitales.nexura.com/apig/tardigitales/notificaciones', payload);
     });
 
     forkJoin(requests).subscribe({

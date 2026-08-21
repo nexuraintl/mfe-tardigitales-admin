@@ -77,7 +77,7 @@ export class ValidadorQrComponent implements OnInit {
       val_estado: this.config.val_estado ? 1 : 0
     };
 
-    this.http.post('http://localhost:8000/validador-qr/config', payload)
+    this.http.post('https://preproduccion-tardigitales.nexura.com/apig/tardigitales/validador-qr/config', payload)
       .subscribe({
         next: (res: any) => {
           this.mensajeExito = 'Configuración guardada correctamente.';
