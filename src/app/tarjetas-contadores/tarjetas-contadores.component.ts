@@ -321,7 +321,7 @@ export class TarjetasContadoresComponent implements OnInit {
       client_id: this.clientId
     };
 
-    this.http.post('http://localhost:8000/tarjetas', payload)
+    this.http.post('https://preproduccion-tardigitales.nexura.com/apig/tardigitales/tarjetas', payload)
       .subscribe({
         next: (response) => {
           this.mensajeExito = "Emisión confirmada correctamente.";
