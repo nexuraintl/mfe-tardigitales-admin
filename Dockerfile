@@ -13,7 +13,7 @@ RUN npm install
 COPY . .
 
 # Construir la aplicación para producción
-RUN npm run build
+RUN npx ng build --base-href=/admin/tardigitales/
 
 # Etapa 2: Servidor web con Nginx (imagen non-root, requerida por Cloud Run)
 FROM nginxinc/nginx-unprivileged:alpine
