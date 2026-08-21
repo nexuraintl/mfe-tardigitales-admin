@@ -15,7 +15,7 @@ export class ValidadorQrComponent implements OnInit {
   private router = inject(Router);
   private cdr = inject(ChangeDetectorRef);
 
-  clientId: number = 20002;
+  clientId: number = 20001;
   loading: boolean = false;
   mensajeExito: string = '';
   mensajeError: string = '';
