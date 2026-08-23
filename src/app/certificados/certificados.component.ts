@@ -2,6 +2,7 @@ import { Component, OnInit, inject, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { HttpClient } from '@angular/common/http';
+import { API_BASE, CLIENT_ID } from '../core/config/api.config';
 
 export interface Certificado {
   id: number;
@@ -25,7 +26,7 @@ export class CertificadosComponent implements OnInit {
   private http = inject(HttpClient);
   private cdr = inject(ChangeDetectorRef);
 
-  clientId: number = 20001;
+  clientId: number = CLIENT_ID;
   certificados: Certificado[] = [];
   loading: boolean = false;
 
@@ -40,7 +41,7 @@ export class CertificadosComponent implements OnInit {
 
   cargarCertificados(): void {
     this.loading = true;
-    this.http.get<Certificado[]>(`https://preproduccion-tardigitales.nexura.com/apig/tardigitales/certificados?client_id=${this.clientId}`)
+    this.http.get<Certificado[]>(`${API_BASE}/certificados?client_id=${this.clientId}`)
       .subscribe({
         next: (data) => {
           this.certificados = data;

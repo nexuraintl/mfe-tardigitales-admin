@@ -2,6 +2,7 @@ import { Component, OnInit, inject, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { HttpClient } from '@angular/common/http';
+import { API_BASE, CLIENT_ID } from '../core/config/api.config';
 
 interface NotificationItem {
   id: number;
@@ -26,7 +27,7 @@ interface NotificationItem {
 export class NotificationsHistoryComponent implements OnInit {
   private http = inject(HttpClient);
   private cdr = inject(ChangeDetectorRef);
-  private clientId: number = 20001;
+  clientId: number = CLIENT_ID;
 
   notificaciones: NotificationItem[] = [];
 
@@ -35,7 +36,7 @@ export class NotificationsHistoryComponent implements OnInit {
   }
 
   cargarNotificaciones(): void {
-    this.http.get<NotificationItem[]>(`https://preproduccion-tardigitales.nexura.com/apig/tardigitales/notificaciones?client_id=${this.clientId}`)
+    this.http.get<NotificationItem[]>(`${API_BASE}/notificaciones?client_id=${this.clientId}`)
       .subscribe({
         next: (data) => {
           this.notificaciones = data;

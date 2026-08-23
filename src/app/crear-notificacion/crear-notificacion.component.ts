@@ -4,6 +4,7 @@ import { FormsModule } from '@angular/forms';
 import { HttpClient } from '@angular/common/http';
 import { Router } from '@angular/router';
 import { forkJoin, of } from 'rxjs';
+import { API_BASE, CLIENT_ID } from '../core/config/api.config';
 
 @Component({
   selector: 'app-crear-notificacion',
@@ -15,7 +16,7 @@ import { forkJoin, of } from 'rxjs';
 export class CrearNotificacionComponent {
   private http = inject(HttpClient);
   private router = inject(Router);
-  private clientId: number = 20001;
+  clientId: number = CLIENT_ID;
 
   // Form Fields
   startTime: string = '07:00';
@@ -129,11 +130,11 @@ export class CrearNotificacionComponent {
         destinatarios: destinatarios,
         fecha: fechaEnvio,
         estado: estadoEnvio,
-        creadoPor: 'Sebastian Cuencar', // Administrador por defecto
+        creadoPor: 'Administrador',
         mensaje: this.notificationMessage
       };
 
-      return this.http.post('https://preproduccion-tardigitales.nexura.com/apig/tardigitales/notificaciones', payload);
+      return this.http.post(`${API_BASE}/notificaciones?client_id=${this.clientId}`, payload);
     });
 
     forkJoin(requests).subscribe({
