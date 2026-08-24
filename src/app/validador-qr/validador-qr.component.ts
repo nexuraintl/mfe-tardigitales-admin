@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { HttpClient } from '@angular/common/http';
 import { Router } from '@angular/router';
+import { API_BASE, CLIENT_ID } from '../core/config/api.config';
 
 @Component({
   selector: 'app-validador-qr',
@@ -15,7 +16,7 @@ export class ValidadorQrComponent implements OnInit {
   private router = inject(Router);
   private cdr = inject(ChangeDetectorRef);
 
-  clientId: number = 20001;
+  clientId: number = CLIENT_ID;
   loading: boolean = false;
   mensajeExito: string = '';
   mensajeError: string = '';
@@ -39,7 +40,7 @@ export class ValidadorQrComponent implements OnInit {
     this.mensajeError = '';
     this.mensajeExito = '';
 
-    this.http.get<any>(`https://preproduccion-tardigitales.nexura.com/apig/tardigitales/validador-qr/config?client_id=${this.clientId}`)
+    this.http.get<any>(`${API_BASE}/validador-qr/config?client_id=${this.clientId}`)
       .subscribe({
         next: (data) => {
           this.config = {
@@ -77,7 +78,7 @@ export class ValidadorQrComponent implements OnInit {
       val_estado: this.config.val_estado ? 1 : 0
     };
 
-    this.http.post('https://preproduccion-tardigitales.nexura.com/apig/tardigitales/validador-qr/config', payload)
+    this.http.post(`${API_BASE}/validador-qr/config?client_id=${this.clientId}`, payload)
       .subscribe({
         next: (res: any) => {
           this.mensajeExito = 'Configuración guardada correctamente.';
