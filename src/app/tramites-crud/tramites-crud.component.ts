@@ -2,6 +2,7 @@ import { Component, OnInit, inject, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { HttpClient } from '@angular/common/http';
+import { API_BASE, CLIENT_ID } from '../core/config/api.config';
 
 interface Tramite {
   id?: number;
@@ -23,7 +24,7 @@ interface Tramite {
 export class TramitesCrudComponent implements OnInit {
   private http = inject(HttpClient);
   private cdr = inject(ChangeDetectorRef);
-  private clientId: number = 20002;
+  clientId: number = CLIENT_ID;
 
   tramites: Tramite[] = [];
   loading: boolean = false;
@@ -58,7 +59,7 @@ export class TramitesCrudComponent implements OnInit {
   obtenerTramites(): void {
     this.loading = true;
     this.errorMsg = '';
-    this.http.get<Tramite[]>(`https://preproduccion-tardigitales.nexura.com/apig/tardigitales/tramites?client_id=${this.clientId}`)
+    this.http.get<Tramite[]>(`${API_BASE}/tramites?client_id=${this.clientId}`)
       .subscribe({
         next: (data) => {
           this.tramites = data;
@@ -81,9 +82,25 @@ export class TramitesCrudComponent implements OnInit {
   }
 
   abrirEditar(tramite: Tramite): void {
-    this.isEditing = true;
-    this.formTramite = { ...tramite }; // Clonamos el objeto para evitar modificar la tabla directamente
-    this.modalOpen = true;
+    if (!tramite.id) return;
+    this.loading = true;
+    this.http.get<Tramite>(`${API_BASE}/tramites/${tramite.id}?client_id=${this.clientId}`)
+      .subscribe({
+        next: (freshData) => {
+          this.isEditing = true;
+          this.formTramite = { ...freshData };
+          this.modalOpen = true;
+          this.loading = false;
+          this.cdr.detectChanges();
+        },
+        error: (err) => {
+          console.error('Error al consultar estado actual del trámite:', err);
+          alert('No fue posible consultar el estado actual del trámite. Es posible que haya sido modificado o eliminado por otro usuario.');
+          this.loading = false;
+          this.obtenerTramites();
+          this.cdr.detectChanges();
+        }
+      });
   }
 
   cerrarModal(): void {
@@ -101,7 +118,7 @@ export class TramitesCrudComponent implements OnInit {
 
     if (this.isEditing && this.formTramite.id) {
       // Actualizar Trámite
-      this.http.put<Tramite>(`https://preproduccion-tardigitales.nexura.com/apig/tardigitales/tramites/${this.formTramite.id}`, this.formTramite)
+      this.http.put<Tramite>(`${API_BASE}/tramites/${this.formTramite.id}?client_id=${this.clientId}`, this.formTramite)
         .subscribe({
           next: () => {
             this.cerrarModal();
@@ -114,7 +131,7 @@ export class TramitesCrudComponent implements OnInit {
         });
     } else {
       // Crear Trámite
-      this.http.post<Tramite>('https://preproduccion-tardigitales.nexura.com/apig/tardigitales/tramites', this.formTramite)
+      this.http.post<Tramite>(`${API_BASE}/tramites?client_id=${this.clientId}`, this.formTramite)
         .subscribe({
           next: () => {
             this.cerrarModal();
@@ -140,7 +157,7 @@ export class TramitesCrudComponent implements OnInit {
 
   confirmarEliminar(): void {
     if (this.tramiteToDeleteId !== null) {
-      this.http.delete(`https://preproduccion-tardigitales.nexura.com/apig/tardigitales/tramites/${this.tramiteToDeleteId}?client_id=${this.clientId}`)
+      this.http.delete(`${API_BASE}/tramites/${this.tramiteToDeleteId}?client_id=${this.clientId}`)
         .subscribe({
           next: () => {
             this.cerrarConfirmarEliminar();

@@ -2,6 +2,7 @@ import { Component, OnInit, inject, ChangeDetectorRef, HostListener } from '@ang
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { HttpClient } from '@angular/common/http';
+import { API_BASE, CLIENT_ID } from '../core/config/api.config';
 
 interface TarjetaContador {
   id: number;
@@ -28,7 +29,7 @@ interface TarjetaContador {
 export class TarjetasContadoresComponent implements OnInit {
   private http = inject(HttpClient);
   private cdr = inject(ChangeDetectorRef);
-  private clientId: number = 20002;
+  clientId: number = CLIENT_ID;
 
   tarjetas: TarjetaContador[] = [];
   loading: boolean = false;
@@ -71,7 +72,7 @@ export class TarjetasContadoresComponent implements OnInit {
 
   cargarTarjetas(): void {
     this.loading = true;
-    this.http.get<TarjetaContador[]>(`https://preproduccion-tardigitales.nexura.com/apig/tardigitales/tarjetas?tipo_tarjeta=contadores&client_id=${this.clientId}`)
+    this.http.get<TarjetaContador[]>(`${API_BASE}/tarjetas?tipo_tarjeta=contadores&client_id=${this.clientId}`)
       .subscribe({
         next: (data) => {
           this.tarjetas = data;
@@ -321,7 +322,7 @@ export class TarjetasContadoresComponent implements OnInit {
       client_id: this.clientId
     };
 
-    this.http.post('https://preproduccion-tardigitales.nexura.com/apig/tardigitales/tarjetas', payload)
+    this.http.post(`${API_BASE}/tarjetas?client_id=${this.clientId}`, payload)
       .subscribe({
         next: (response) => {
           this.mensajeExito = "Emisión confirmada correctamente.";
@@ -355,7 +356,7 @@ export class TarjetasContadoresComponent implements OnInit {
     this.selectedTarjeta = t;
     this.vistaActiva = 'historial';
     this.selectedTarjetaHistorial = null;
-    this.http.get(`https://preproduccion-tardigitales.nexura.com/apig/tardigitales/tarjetas/${t.id}/historial?client_id=${this.clientId}`)
+    this.http.get(`${API_BASE}/tarjetas/${t.id}/historial?client_id=${this.clientId}`)
       .subscribe({
         next: (res) => {
           this.selectedTarjetaHistorial = res;
