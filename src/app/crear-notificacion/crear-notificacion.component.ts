@@ -5,18 +5,23 @@ import { HttpClient } from '@angular/common/http';
 import { Router } from '@angular/router';
 import { forkJoin, of } from 'rxjs';
 import { API_BASE, CLIENT_ID } from '../core/config/api.config';
+import { ErrorHandlerService, AppError } from '../core/services/error-handler.service';
+import { NxAlertComponent } from '../shared/components/alert/alert.component';
 
 @Component({
   selector: 'app-crear-notificacion',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, NxAlertComponent],
   templateUrl: './crear-notificacion.component.html',
   styleUrl: './crear-notificacion.component.css'
 })
 export class CrearNotificacionComponent {
   private http = inject(HttpClient);
   private router = inject(Router);
+  private errorHandler = inject(ErrorHandlerService);
   clientId: number = CLIENT_ID;
+  currentError: AppError | null = null;
+  warningMsg: string = '';
 
   // Form Fields
   startTime: string = '07:00';
@@ -84,8 +89,11 @@ export class CrearNotificacionComponent {
   }
 
   guardarConfiguracion(): void {
+    this.warningMsg = '';
+    this.currentError = null;
+
     if (!this.notificationTitle || !this.notificationMessage) {
-      alert('Por favor completa todos los campos marcados con asterisco (*).');
+      this.warningMsg = 'Por favor complete todos los campos marcados con asterisco (*).';
       return;
     }
 
@@ -95,7 +103,7 @@ export class CrearNotificacionComponent {
     if (this.internalActive) canales.push('Notificación interna');
 
     if (canales.length === 0) {
-      alert('Debes seleccionar al menos un canal de envío.');
+      this.warningMsg = 'Debe seleccionar al menos un canal de envío.';
       return;
     }
 
@@ -145,7 +153,7 @@ export class CrearNotificacionComponent {
       },
       error: (err) => {
         console.error('Error al guardar notificaciones:', err);
-        alert('Ocurrió un error al guardar las notificaciones. Verifica que la API esté encendida.');
+        this.currentError = this.errorHandler.parseError(err, 'MS_3821_NOTIFICACIONES_CREATE', `${API_BASE}/notificaciones`);
         this.loading = false;
       }
     });

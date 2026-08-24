@@ -4,22 +4,25 @@ import { FormsModule } from '@angular/forms';
 import { HttpClient } from '@angular/common/http';
 import { Router } from '@angular/router';
 import { API_BASE, CLIENT_ID } from '../core/config/api.config';
+import { ErrorHandlerService, AppError } from '../core/services/error-handler.service';
+import { NxAlertComponent } from '../shared/components/alert/alert.component';
 
 @Component({
   selector: 'app-validador-qr',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, NxAlertComponent],
   templateUrl: './validador-qr.component.html'
 })
 export class ValidadorQrComponent implements OnInit {
   private http = inject(HttpClient);
   private router = inject(Router);
   private cdr = inject(ChangeDetectorRef);
+  private errorHandler = inject(ErrorHandlerService);
 
   clientId: number = CLIENT_ID;
   loading: boolean = false;
   mensajeExito: string = '';
-  mensajeError: string = '';
+  currentError: AppError | null = null;
 
   // Configuración de campos
   config = {
@@ -37,26 +40,21 @@ export class ValidadorQrComponent implements OnInit {
 
   cargarConfiguracion(): void {
     this.loading = true;
-    this.mensajeError = '';
+    this.currentError = null;
     this.mensajeExito = '';
 
-    this.http.get<any>(`${API_BASE}/validador-qr/config?client_id=${this.clientId}`)
+    this.http.get<any>(`${API_BASE}/config-validador?client_id=${this.clientId}`)
       .subscribe({
         next: (data) => {
-          this.config = {
-            val_foto: data.val_foto === 1,
-            val_nombres: data.val_nombres === 1,
-            val_matricula: data.val_matricula === 1,
-            val_numero_identificacion: data.val_numero_identificacion === 1,
-            val_codigo_tarjeta: data.val_codigo_tarjeta === 1,
-            val_estado: data.val_estado === 1
-          };
+          if (data) {
+            this.config = { ...this.config, ...data };
+          }
           this.loading = false;
           this.cdr.detectChanges();
         },
         error: (err) => {
-          console.error('Error al cargar config de validador:', err);
-          this.mensajeError = 'No fue posible cargar la configuración desde el servidor.';
+          console.error('Error al cargar configuración del validador QR:', err);
+          this.currentError = this.errorHandler.parseError(err, 'MS_3850_VALIDADOR_CONFIG', `${API_BASE}/config-validador`);
           this.loading = false;
           this.cdr.detectChanges();
         }
@@ -65,7 +63,7 @@ export class ValidadorQrComponent implements OnInit {
 
   guardarConfiguracion(): void {
     this.loading = true;
-    this.mensajeError = '';
+    this.currentError = null;
     this.mensajeExito = '';
 
     const payload = {
@@ -81,13 +79,13 @@ export class ValidadorQrComponent implements OnInit {
     this.http.post(`${API_BASE}/validador-qr/config?client_id=${this.clientId}`, payload)
       .subscribe({
         next: (res: any) => {
-          this.mensajeExito = 'Configuración guardada correctamente.';
+          this.mensajeExito = 'Configuración del validador guardada correctamente.';
           this.loading = false;
           this.cdr.detectChanges();
         },
         error: (err) => {
           console.error('Error al guardar config de validador:', err);
-          this.mensajeError = 'Error al guardar la configuración en el servidor.';
+          this.currentError = this.errorHandler.parseError(err, 'MS_3851_VALIDADOR_SAVE', `${API_BASE}/validador-qr/config`);
           this.loading = false;
           this.cdr.detectChanges();
         }
