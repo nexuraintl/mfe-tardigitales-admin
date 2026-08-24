@@ -1,45 +1,55 @@
-import { Component, OnInit, inject, ChangeDetectorRef } from '@angular/core';
+import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { HttpClient } from '@angular/common/http';
 import { API_BASE, CLIENT_ID } from '../core/config/api.config';
+import { ErrorHandlerService, AppError } from '../core/services/error-handler.service';
+import { NxAlertComponent } from '../shared/components/alert/alert.component';
 
-interface Tramite {
+export interface Tramite {
   id?: number;
-  client_id?: number;
+  client_id: number;
   nombre: string;
   tipo: string;
   costo: number;
-  estado: 'Activo' | 'Inactivo';
-  descripcion: string;
+  estado: string;
+  descripcion?: string;
 }
 
 @Component({
   selector: 'app-tramites-crud',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, NxAlertComponent],
   templateUrl: './tramites-crud.component.html',
   styleUrl: './tramites-crud.component.css'
 })
 export class TramitesCrudComponent implements OnInit {
-  private http = inject(HttpClient);
-  private cdr = inject(ChangeDetectorRef);
+  tramites: Tramite[] = [];
+  loading = false;
+  currentError: AppError | null = null;
+  successMsg: string = '';
   clientId: number = CLIENT_ID;
 
-  tramites: Tramite[] = [];
-  loading: boolean = false;
-  errorMsg: string = '';
+  // Filtros
+  filtroTexto = '';
+  filtroTipo = '';
+  filtroEstado = '';
 
-  // Controladores del Modal de Formulario
-  modalOpen: boolean = false;
-  isEditing: boolean = false;
+  // Modal Crear/Editar
+  modalOpen = false;
+  isEditing = false;
+  formTramite: Tramite = this.getEmptyTramite();
+  formError: string = '';
 
-  // Controladores del Modal de Confirmación de Eliminación
-  deleteModalOpen: boolean = false;
+  // Modal Confirmar Eliminar
+  deleteModalOpen = false;
   tramiteToDeleteId: number | null = null;
 
-  // Datos del Formulario
-  formTramite: Tramite = this.getEmptyTramite();
+  constructor(
+    private http: HttpClient,
+    private cdr: ChangeDetectorRef,
+    private errorHandler: ErrorHandlerService
+  ) {}
 
   ngOnInit(): void {
     this.obtenerTramites();
@@ -58,7 +68,7 @@ export class TramitesCrudComponent implements OnInit {
 
   obtenerTramites(): void {
     this.loading = true;
-    this.errorMsg = '';
+    this.currentError = null;
     this.http.get<Tramite[]>(`${API_BASE}/tramites?client_id=${this.clientId}`)
       .subscribe({
         next: (data) => {
@@ -67,8 +77,7 @@ export class TramitesCrudComponent implements OnInit {
           this.cdr.detectChanges();
         },
         error: (err) => {
-          console.error('Error al obtener trámites:', err);
-          this.errorMsg = 'No se pudo conectar con el microservicio de Python. Verifica que esté encendido.';
+          this.currentError = this.errorHandler.parseError(err, 'MS_3810_TRAMITES_GET', `${API_BASE}/tramites`);
           this.loading = false;
           this.cdr.detectChanges();
         }
@@ -77,6 +86,7 @@ export class TramitesCrudComponent implements OnInit {
 
   abrirCrear(): void {
     this.isEditing = false;
+    this.formError = '';
     this.formTramite = this.getEmptyTramite();
     this.modalOpen = true;
   }
@@ -84,7 +94,8 @@ export class TramitesCrudComponent implements OnInit {
   abrirEditar(tramite: Tramite): void {
     if (!tramite.id) return;
     this.loading = true;
-    this.http.get<Tramite>(`${API_BASE}/tramites/${tramite.id}?client_id=${this.clientId}`)
+    this.formError = '';
+    this.http.post<Tramite>(`${API_BASE}/tramites/detalle`, { id: tramite.id, client_id: this.clientId })
       .subscribe({
         next: (freshData) => {
           this.isEditing = true;
@@ -94,8 +105,7 @@ export class TramitesCrudComponent implements OnInit {
           this.cdr.detectChanges();
         },
         error: (err) => {
-          console.error('Error al consultar estado actual del trámite:', err);
-          alert('No fue posible consultar el estado actual del trámite. Es posible que haya sido modificado o eliminado por otro usuario.');
+          this.currentError = this.errorHandler.parseError(err, 'MS_3811_TRAMITES_NOT_FOUND', `${API_BASE}/tramites/detalle`);
           this.loading = false;
           this.obtenerTramites();
           this.cdr.detectChanges();
@@ -105,41 +115,47 @@ export class TramitesCrudComponent implements OnInit {
 
   cerrarModal(): void {
     this.modalOpen = false;
+    this.formError = '';
     this.formTramite = this.getEmptyTramite();
   }
 
   guardarTramite(): void {
     if (!this.formTramite.nombre || this.formTramite.costo < 0) {
-      alert('Por favor completa todos los campos obligatorios.');
+      this.formError = 'Por favor complete todos los campos obligatorios del trámite.';
       return;
     }
 
     this.formTramite.client_id = this.clientId;
+    this.formError = '';
 
     if (this.isEditing && this.formTramite.id) {
-      // Actualizar Trámite
-      this.http.put<Tramite>(`${API_BASE}/tramites/${this.formTramite.id}?client_id=${this.clientId}`, this.formTramite)
+      // Actualizar Trámite (ID enviado en el payload del body)
+      this.http.put<Tramite>(`${API_BASE}/tramites`, this.formTramite)
         .subscribe({
           next: () => {
+            this.successMsg = 'El trámite ha sido actualizado correctamente.';
+            setTimeout(() => this.successMsg = '', 5000);
             this.cerrarModal();
             this.obtenerTramites();
           },
           error: (err) => {
-            console.error('Error al actualizar trámite:', err);
-            alert('Error al intentar actualizar el trámite.');
+            const appErr = this.errorHandler.parseError(err, 'MS_3813_TRAMITES_UPDATE', `${API_BASE}/tramites`);
+            this.formError = `${appErr.title}: ${appErr.message}`;
           }
         });
     } else {
-      // Crear Trámite
-      this.http.post<Tramite>(`${API_BASE}/tramites?client_id=${this.clientId}`, this.formTramite)
+      // Crear Trámite (Payload en el body)
+      this.http.post<Tramite>(`${API_BASE}/tramites`, this.formTramite)
         .subscribe({
           next: () => {
+            this.successMsg = 'El trámite ha sido registrado exitosamente.';
+            setTimeout(() => this.successMsg = '', 5000);
             this.cerrarModal();
             this.obtenerTramites();
           },
           error: (err) => {
-            console.error('Error al registrar trámite:', err);
-            alert('Error al intentar registrar el trámite.');
+            const appErr = this.errorHandler.parseError(err, 'MS_3812_TRAMITES_CREATE', `${API_BASE}/tramites`);
+            this.formError = `${appErr.title}: ${appErr.message}`;
           }
         });
     }
@@ -157,18 +173,37 @@ export class TramitesCrudComponent implements OnInit {
 
   confirmarEliminar(): void {
     if (this.tramiteToDeleteId !== null) {
-      this.http.delete(`${API_BASE}/tramites/${this.tramiteToDeleteId}?client_id=${this.clientId}`)
+      const id = this.tramiteToDeleteId;
+      this.http.post(`${API_BASE}/tramites/eliminar`, { id: id, client_id: this.clientId })
         .subscribe({
           next: () => {
+            this.successMsg = 'El trámite ha sido eliminado correctamente.';
+            setTimeout(() => this.successMsg = '', 5000);
             this.cerrarConfirmarEliminar();
             this.obtenerTramites();
           },
           error: (err) => {
-            console.error('Error al eliminar trámite:', err);
-            alert('Error al intentar eliminar el trámite.');
+            this.currentError = this.errorHandler.parseError(err, 'MS_3814_TRAMITES_DELETE', `${API_BASE}/tramites/eliminar`);
             this.cerrarConfirmarEliminar();
           }
         });
     }
+  }
+
+  get tramitesFiltrados(): Tramite[] {
+    return this.tramites.filter(t => {
+      const matchTexto = !this.filtroTexto || 
+        t.nombre.toLowerCase().includes(this.filtroTexto.toLowerCase()) ||
+        (t.descripcion && t.descripcion.toLowerCase().includes(this.filtroTexto.toLowerCase()));
+      const matchTipo = !this.filtroTipo || t.tipo === this.filtroTipo;
+      const matchEstado = !this.filtroEstado || t.estado === this.filtroEstado;
+      return matchTexto && matchTipo && matchEstado;
+    });
+  }
+
+  limpiarFiltros(): void {
+    this.filtroTexto = '';
+    this.filtroTipo = '';
+    this.filtroEstado = '';
   }
 }

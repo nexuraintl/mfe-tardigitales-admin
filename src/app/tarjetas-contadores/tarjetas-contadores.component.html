@@ -14,6 +14,10 @@
     </div>
   </section>
 
+  <!-- Alertas del Sistema -->
+  <nx-alert [error]="currentError" (onClose)="currentError = null"></nx-alert>
+  <nx-alert *ngIf="mensajeExito" type="success" [message]="mensajeExito" (onClose)="mensajeExito = ''"></nx-alert>
+
   <!-- Barra de Herramientas -->
   <section class="card toolbar">
     <button class="btn btn-primary btn-sm" (click)="abrirNuevaTarjeta()">💳 Nueva tarjeta</button>

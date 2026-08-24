@@ -3,6 +3,8 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { HttpClient } from '@angular/common/http';
 import { API_BASE, CLIENT_ID } from '../core/config/api.config';
+import { ErrorHandlerService, AppError } from '../core/services/error-handler.service';
+import { NxAlertComponent } from '../shared/components/alert/alert.component';
 
 export interface Certificado {
   id: number;
@@ -19,16 +21,18 @@ export interface Certificado {
 @Component({
   selector: 'app-certificados',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, NxAlertComponent],
   templateUrl: './certificados.component.html'
 })
 export class CertificadosComponent implements OnInit {
   private http = inject(HttpClient);
   private cdr = inject(ChangeDetectorRef);
+  private errorHandler = inject(ErrorHandlerService);
 
   clientId: number = CLIENT_ID;
   certificados: Certificado[] = [];
   loading: boolean = false;
+  currentError: AppError | null = null;
 
   // Búsqueda y paginación
   searchQuery: string = '';
@@ -41,6 +45,7 @@ export class CertificadosComponent implements OnInit {
 
   cargarCertificados(): void {
     this.loading = true;
+    this.currentError = null;
     this.http.get<Certificado[]>(`${API_BASE}/certificados?client_id=${this.clientId}`)
       .subscribe({
         next: (data) => {
@@ -50,6 +55,7 @@ export class CertificadosComponent implements OnInit {
         },
         error: (err) => {
           console.error('Error al cargar certificados:', err);
+          this.currentError = this.errorHandler.parseError(err, 'MS_3860_CERTIFICADOS_GET', `${API_BASE}/certificados`);
           this.loading = false;
           this.cdr.detectChanges();
         }

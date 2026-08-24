@@ -13,20 +13,19 @@
 
   <!-- Estado de Carga / Errores -->
   <div *ngIf="loading" class="empty-state">
-    Cargando trámites desde el microservicio...
+    Consultando catálogo de trámites...
   </div>
 
-  <div *ngIf="errorMsg" class="card" style="border-left: 4px solid #d93025; padding: 15px; margin-bottom: 20px; background: #fce8e6;">
-    <strong style="color: #c5221f; font-size: 13px;">Error de Conexión:</strong>
-    <p style="margin: 5px 0 0 0; color: #202124; font-size: 12px;">{{ errorMsg }}</p>
-  </div>
+  <!-- Alertas del Sistema -->
+  <nx-alert [error]="currentError" (onClose)="currentError = null"></nx-alert>
+  <nx-alert *ngIf="successMsg" type="success" [message]="successMsg" (onClose)="successMsg = ''"></nx-alert>
 
   <!-- Tabla de Trámites -->
   <section class="card table-card" *ngIf="!loading">
     <div class="table-card-head">
       <div>
-        <h3>Trámites Activos en Base de Datos</h3>
-        <p>Utilice las acciones de edición y eliminación para administrar cada registro en tiempo real en MySQL.</p>
+        <h3>Listado de Trámites Registrados</h3>
+        <p>Administre los trámites oficiales, costos y estado de vigencia en el sistema.</p>
       </div>
     </div>
 
@@ -118,12 +117,15 @@
     <div class="modal-header">
       <div>
         <h3>{{ isEditing ? 'Editar Trámite' : 'Registrar Nuevo Trámite' }}</h3>
-        <p>{{ isEditing ? 'Modifique los campos correspondientes.' : 'Complete el formulario para guardar el trámite en MySQL.' }}</p>
+        <p>{{ isEditing ? 'Modifique los campos correspondientes.' : 'Complete el formulario para registrar el trámite oficial.' }}</p>
       </div>
       <button type="button" class="close-btn" (click)="cerrarModal()">×</button>
     </div>
     
     <div class="modal-body">
+      <div *ngIf="formError" class="alert alert-danger" role="alert" style="border-left: 4px solid #dc3545; background-color: #f8d7da; border-color: #f5c2c7; color: #842029; padding: 10px 14px; border-radius: 6px; margin-bottom: 15px; font-size: 13px;">
+        {{ formError }}
+      </div>
       <form (ngSubmit)="guardarTramite()" #tramiteForm="ngForm" style="display: flex; flex-direction: column; gap: 15px;">
         
         <!-- Nombre -->
