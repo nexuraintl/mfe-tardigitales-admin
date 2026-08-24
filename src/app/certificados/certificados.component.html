@@ -6,6 +6,9 @@
     </div>
   </header>
 
+  <!-- Alerta de Error -->
+  <nx-alert [error]="currentError" (onClose)="currentError = null"></nx-alert>
+
   <section class="card table-card" style="margin-top:18px">
     <div class="table-card-head">
       <div>

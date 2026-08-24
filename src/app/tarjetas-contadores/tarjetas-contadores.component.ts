@@ -2,7 +2,9 @@ import { Component, OnInit, inject, ChangeDetectorRef, HostListener } from '@ang
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { HttpClient } from '@angular/common/http';
+import { ErrorHandlerService, AppError } from '../core/services/error-handler.service';
 import { API_BASE, CLIENT_ID } from '../core/config/api.config';
+import { NxAlertComponent } from '../shared/components/alert/alert.component';
 
 interface TarjetaContador {
   id: number;
@@ -22,17 +24,19 @@ interface TarjetaContador {
 @Component({
   selector: 'app-tarjetas-contadores',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, NxAlertComponent],
   templateUrl: './tarjetas-contadores.component.html',
   styleUrl: './tarjetas-contadores.component.css'
 })
 export class TarjetasContadoresComponent implements OnInit {
   private http = inject(HttpClient);
   private cdr = inject(ChangeDetectorRef);
+  private errorHandler = inject(ErrorHandlerService);
   clientId: number = CLIENT_ID;
 
   tarjetas: TarjetaContador[] = [];
   loading: boolean = false;
+  currentError: AppError | null = null;
 
   // Filtros y Buscador
   searchQuery: string = '';
@@ -72,6 +76,7 @@ export class TarjetasContadoresComponent implements OnInit {
 
   cargarTarjetas(): void {
     this.loading = true;
+    this.currentError = null;
     this.http.get<TarjetaContador[]>(`${API_BASE}/tarjetas?tipo_tarjeta=contadores&client_id=${this.clientId}`)
       .subscribe({
         next: (data) => {
@@ -81,6 +86,7 @@ export class TarjetasContadoresComponent implements OnInit {
         },
         error: (err) => {
           console.error('Error al cargar tarjetas de contadores:', err);
+          this.currentError = this.errorHandler.parseError(err, 'MS_3830_TARJETAS_GET', `${API_BASE}/tarjetas`);
           this.loading = false;
           this.cdr.detectChanges();
         }
@@ -332,7 +338,8 @@ export class TarjetasContadoresComponent implements OnInit {
         },
         error: (err) => {
           console.error('Error al emitir tarjeta:', err);
-          this.mensajeError = "Error al emitir la tarjeta en el servidor.";
+          const appErr = this.errorHandler.parseError(err, 'MS_3831_TARJETAS_CREATE', `${API_BASE}/tarjetas`);
+          this.mensajeError = `${appErr.title}: ${appErr.message}`;
           this.loading = false;
           this.cdr.detectChanges();
         }
@@ -356,7 +363,7 @@ export class TarjetasContadoresComponent implements OnInit {
     this.selectedTarjeta = t;
     this.vistaActiva = 'historial';
     this.selectedTarjetaHistorial = null;
-    this.http.get(`${API_BASE}/tarjetas/${t.id}/historial?client_id=${this.clientId}`)
+    this.http.post(`${API_BASE}/tarjetas/historial`, { tarjeta_id: t.id, client_id: this.clientId })
       .subscribe({
         next: (res) => {
           this.selectedTarjetaHistorial = res;
@@ -364,6 +371,7 @@ export class TarjetasContadoresComponent implements OnInit {
         },
         error: (err) => {
           console.error('Error al cargar historial de la tarjeta:', err);
+          this.currentError = this.errorHandler.parseError(err, 'MS_3832_TARJETAS_HISTORIAL', `${API_BASE}/tarjetas/historial`);
           this.cdr.detectChanges();
         }
       });

@@ -9,6 +9,10 @@
     </div>
   </header>
 
+  <!-- Alertas del Sistema -->
+  <nx-alert [error]="currentError" (onClose)="currentError = null"></nx-alert>
+  <nx-alert *ngIf="warningMsg" type="warning" [message]="warningMsg" (onClose)="warningMsg = ''"></nx-alert>
+
   <div class="notification-layout">
     <div>
       <!-- 1. Rango Horario -->
