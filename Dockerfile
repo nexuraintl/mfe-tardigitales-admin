@@ -13,19 +13,19 @@ RUN npm install
 COPY . .
 
 # Construir la aplicación para producción
-RUN npm run build
+RUN npx ng build --base-href=/admin/tardigitales/
 
-# Etapa 2: Servidor web con Nginx
-FROM nginx:alpine
+# Etapa 2: Servidor web con Nginx (imagen non-root, requerida por Cloud Run)
+FROM nginxinc/nginx-unprivileged:alpine
 
 # Copiar los archivos construidos desde la etapa anterior
-COPY --from=build /app/dist/jcc-portal/browser /usr/share/nginx/html
+COPY --from=build --chown=nginx:nginx /app/dist/jcc-portal/browser /usr/share/nginx/html
 
 # Copiar configuración personalizada de Nginx
 COPY nginx.conf /etc/nginx/conf.d/default.conf
 
-# Exponer puerto 80
-EXPOSE 80
+# Cloud Run enruta al puerto 8080 por defecto
+EXPOSE 8080
 
 # Comando para iniciar Nginx
 CMD ["nginx", "-g", "daemon off;"]
