@@ -93,9 +93,25 @@ export class TramitesCrudComponent implements OnInit {
     if (!tramite.id) return;
     this.isEditing = true;
     this.formError = '';
-    // Abre inmediatamente el modal con los datos cargados
     this.formTramite = { ...tramite };
     this.modalOpen = true;
+
+    // Consultar información fresca y actualizada directamente del servidor
+    this.http.get<Tramite>(`${API_BASE}/tramites/${tramite.id}?client_id=${this.clientId}`)
+      .subscribe({
+        next: (freshData) => {
+          if (freshData) {
+            this.formTramite = { ...freshData };
+            this.cdr.detectChanges();
+          }
+        },
+        error: (err) => {
+          console.error('Error al consultar datos actualizados del trámite:', err);
+          const appErr = this.errorHandler.parseError(err, 'MS_3811_TRAMITES_NOT_FOUND', `${API_BASE}/tramites/${tramite.id}`);
+          this.formError = `${appErr.title}: ${appErr.message}`;
+          this.cdr.detectChanges();
+        }
+      });
   }
 
   cerrarModal(): void {
