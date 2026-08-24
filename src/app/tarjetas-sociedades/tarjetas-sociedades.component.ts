@@ -368,7 +368,7 @@ export class TarjetasSociedadesComponent implements OnInit {
     this.selectedTarjeta = t;
     this.vistaActiva = 'historial';
     this.selectedTarjetaHistorial = null;
-    this.http.post(`${API_BASE}/tarjetas/historial`, { tarjeta_id: t.id, client_id: this.clientId })
+    this.http.get(`${API_BASE}/tarjetas/${t.id}/historial?client_id=${this.clientId}`)
       .subscribe({
         next: (res) => {
           this.selectedTarjetaHistorial = res;
@@ -376,7 +376,7 @@ export class TarjetasSociedadesComponent implements OnInit {
         },
         error: (err) => {
           console.error('Error al cargar historial de la tarjeta de sociedad:', err);
-          this.currentError = this.errorHandler.parseError(err, 'MS_3832_TARJETAS_HISTORIAL', `${API_BASE}/tarjetas/historial`);
+          this.currentError = this.errorHandler.parseError(err, 'MS_3832_TARJETAS_HISTORIAL', `${API_BASE}/tarjetas/${t.id}/historial`);
           this.cdr.detectChanges();
         }
       });

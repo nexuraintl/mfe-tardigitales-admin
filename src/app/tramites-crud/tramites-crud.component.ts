@@ -8,7 +8,6 @@ import { NxAlertComponent } from '../shared/components/alert/alert.component';
 
 export interface Tramite {
   id?: number;
-  client_id: number;
   nombre: string;
   tipo: string;
   costo: number;
@@ -57,7 +56,6 @@ export class TramitesCrudComponent implements OnInit {
 
   getEmptyTramite(): Tramite {
     return {
-      client_id: this.clientId,
       nombre: '',
       tipo: 'Contador Público',
       costo: 0,
@@ -93,21 +91,24 @@ export class TramitesCrudComponent implements OnInit {
 
   abrirEditar(tramite: Tramite): void {
     if (!tramite.id) return;
-    this.loading = true;
+    this.isEditing = true;
     this.formError = '';
-    this.http.post<Tramite>(`${API_BASE}/tramites/detalle`, { id: tramite.id, client_id: this.clientId })
+    this.formTramite = { ...tramite };
+    this.modalOpen = true;
+
+    // Consultar información fresca y actualizada directamente del servidor
+    this.http.get<Tramite>(`${API_BASE}/tramites/${tramite.id}?client_id=${this.clientId}`)
       .subscribe({
         next: (freshData) => {
-          this.isEditing = true;
-          this.formTramite = { ...freshData };
-          this.modalOpen = true;
-          this.loading = false;
-          this.cdr.detectChanges();
+          if (freshData) {
+            this.formTramite = { ...freshData };
+            this.cdr.detectChanges();
+          }
         },
         error: (err) => {
-          this.currentError = this.errorHandler.parseError(err, 'MS_3811_TRAMITES_NOT_FOUND', `${API_BASE}/tramites/detalle`);
-          this.loading = false;
-          this.obtenerTramites();
+          console.error('Error al consultar datos actualizados del trámite:', err);
+          const appErr = this.errorHandler.parseError(err, 'MS_3811_TRAMITES_NOT_FOUND', `${API_BASE}/tramites/${tramite.id}`);
+          this.formError = `${appErr.title}: ${appErr.message}`;
           this.cdr.detectChanges();
         }
       });
@@ -125,12 +126,11 @@ export class TramitesCrudComponent implements OnInit {
       return;
     }
 
-    this.formTramite.client_id = this.clientId;
     this.formError = '';
 
     if (this.isEditing && this.formTramite.id) {
-      // Actualizar Trámite (ID enviado en el payload del body)
-      this.http.put<Tramite>(`${API_BASE}/tramites`, this.formTramite)
+      // Actualizar Trámite (PUT /tramites/{id}?client_id=...)
+      this.http.put<Tramite>(`${API_BASE}/tramites/${this.formTramite.id}?client_id=${this.clientId}`, this.formTramite)
         .subscribe({
           next: () => {
             this.successMsg = 'El trámite ha sido actualizado correctamente.';
@@ -139,13 +139,13 @@ export class TramitesCrudComponent implements OnInit {
             this.obtenerTramites();
           },
           error: (err) => {
-            const appErr = this.errorHandler.parseError(err, 'MS_3813_TRAMITES_UPDATE', `${API_BASE}/tramites`);
+            const appErr = this.errorHandler.parseError(err, 'MS_3813_TRAMITES_UPDATE', `${API_BASE}/tramites/${this.formTramite.id}`);
             this.formError = `${appErr.title}: ${appErr.message}`;
           }
         });
     } else {
-      // Crear Trámite (Payload en el body)
-      this.http.post<Tramite>(`${API_BASE}/tramites`, this.formTramite)
+      // Crear Trámite (POST /tramites?client_id=...)
+      this.http.post<Tramite>(`${API_BASE}/tramites?client_id=${this.clientId}`, this.formTramite)
         .subscribe({
           next: () => {
             this.successMsg = 'El trámite ha sido registrado exitosamente.';
@@ -174,7 +174,7 @@ export class TramitesCrudComponent implements OnInit {
   confirmarEliminar(): void {
     if (this.tramiteToDeleteId !== null) {
       const id = this.tramiteToDeleteId;
-      this.http.post(`${API_BASE}/tramites/eliminar`, { id: id, client_id: this.clientId })
+      this.http.delete(`${API_BASE}/tramites/${id}?client_id=${this.clientId}`)
         .subscribe({
           next: () => {
             this.successMsg = 'El trámite ha sido eliminado correctamente.';
@@ -183,7 +183,7 @@ export class TramitesCrudComponent implements OnInit {
             this.obtenerTramites();
           },
           error: (err) => {
-            this.currentError = this.errorHandler.parseError(err, 'MS_3814_TRAMITES_DELETE', `${API_BASE}/tramites/eliminar`);
+            this.currentError = this.errorHandler.parseError(err, 'MS_3814_TRAMITES_DELETE', `${API_BASE}/tramites/${id}`);
             this.cerrarConfirmarEliminar();
           }
         });
