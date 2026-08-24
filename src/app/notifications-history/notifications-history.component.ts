@@ -3,6 +3,8 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { HttpClient } from '@angular/common/http';
 import { API_BASE, CLIENT_ID } from '../core/config/api.config';
+import { ErrorHandlerService, AppError } from '../core/services/error-handler.service';
+import { NxAlertComponent } from '../shared/components/alert/alert.component';
 
 interface NotificationItem {
   id: number;
@@ -20,22 +22,25 @@ interface NotificationItem {
 @Component({
   selector: 'app-notifications-history',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, NxAlertComponent],
   templateUrl: './notifications-history.component.html',
   styleUrl: './notifications-history.component.css'
 })
 export class NotificationsHistoryComponent implements OnInit {
   private http = inject(HttpClient);
   private cdr = inject(ChangeDetectorRef);
+  private errorHandler = inject(ErrorHandlerService);
   clientId: number = CLIENT_ID;
 
   notificaciones: NotificationItem[] = [];
+  currentError: AppError | null = null;
 
   ngOnInit(): void {
     this.cargarNotificaciones();
   }
 
   cargarNotificaciones(): void {
+    this.currentError = null;
     this.http.get<NotificationItem[]>(`${API_BASE}/notificaciones?client_id=${this.clientId}`)
       .subscribe({
         next: (data) => {
@@ -44,6 +49,7 @@ export class NotificationsHistoryComponent implements OnInit {
         },
         error: (err) => {
           console.error('Error al cargar notificaciones de la API:', err);
+          this.currentError = this.errorHandler.parseError(err, 'MS_3820_NOTIFICACIONES_GET', `${API_BASE}/notificaciones`);
         }
       });
   }
