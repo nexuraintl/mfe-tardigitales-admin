@@ -9,6 +9,10 @@
     </div>
   </header>
 
+  <!-- Alertas del Sistema -->
+  <nx-alert [error]="currentError" (onClose)="currentError = null"></nx-alert>
+  <nx-alert *ngIf="mensajeExito" type="success" [message]="mensajeExito" (onClose)="mensajeExito = ''"></nx-alert>
+
   <div class="qr-validator-content">
     <section class="card individual-issue-card">
       <div class="individual-issue-card-header">Seleccione los campos visibles al verificar el QR de una tarjeta</div>
@@ -41,13 +45,6 @@
             </label>
           </div>
         </form>
-
-        <div *ngIf="mensajeExito" class="bulk-result visible" style="margin-bottom:14px; padding:11px 13px; border:1px solid #badbcc; background:#d1e7dd; color:#0f5132; border-radius:6px; font-size:11px;">
-          {{ mensajeExito }}
-        </div>
-        <div *ngIf="mensajeError" class="bulk-result visible error" style="margin-bottom:14px; padding:11px 13px; border:1px solid #f5c2c7; background:#f8d7da; color:#842029; border-radius:6px; font-size:11px;">
-          {{ mensajeError }}
-        </div>
 
         <div class="qr-validator-footer">
           <button type="button" class="btn btn-primary btn-sm" (click)="guardarConfiguracion()" [disabled]="loading">

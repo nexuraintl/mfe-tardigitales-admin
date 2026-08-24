@@ -11,6 +11,9 @@
     </div>
   </header>
 
+  <!-- Alerta de Error -->
+  <nx-alert [error]="currentError" (onClose)="currentError = null"></nx-alert>
+
   <!-- Tarjetas Estadísticas -->
   <section class="history-summary">
     <article class="card summary-card">
