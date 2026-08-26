@@ -28,12 +28,12 @@ export class CrearNotificacionComponent {
   endTime: string = '17:00';
   maxDaily: number = 2;
 
-  pushActive: boolean = true;
-  standardActive: boolean = true;
-  internalActive: boolean = true;
+  pushActive: boolean = false;
+  standardActive: boolean = false;
+  internalActive: boolean = false;
 
-  notificationTitle: string = 'Mantenimiento programado';
-  notificationMessage: string = 'El sistema estará en mantenimiento el domingo 25 de mayo de 8:00 p. m. a 11:00 p. m. por actualización de servidores.';
+  notificationTitle: string = '';
+  notificationMessage: string = '';
   notificationType: string = 'Informativa';
   audience: string = 'Todos';
 
