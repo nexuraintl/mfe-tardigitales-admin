@@ -2,6 +2,7 @@ import { Component, OnInit, inject, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { HttpClient } from '@angular/common/http';
+import { Router, RouterModule } from '@angular/router';
 import { API_BASE, CLIENT_ID } from '../core/config/api.config';
 import { ErrorHandlerService, AppError } from '../core/services/error-handler.service';
 import { NxAlertComponent } from '../shared/components/alert/alert.component';
@@ -22,18 +23,23 @@ interface NotificationItem {
 @Component({
   selector: 'app-notifications-history',
   standalone: true,
-  imports: [CommonModule, FormsModule, NxAlertComponent],
+  imports: [CommonModule, FormsModule, RouterModule, NxAlertComponent],
   templateUrl: './notifications-history.component.html',
   styleUrl: './notifications-history.component.css'
 })
 export class NotificationsHistoryComponent implements OnInit {
   private http = inject(HttpClient);
+  private router = inject(Router);
   private cdr = inject(ChangeDetectorRef);
   private errorHandler = inject(ErrorHandlerService);
   clientId: number = CLIENT_ID;
 
   notificaciones: NotificationItem[] = [];
   currentError: AppError | null = null;
+
+  irACrearNotificacion(): void {
+    this.router.navigate(['/crear-notificacion']);
+  }
 
   ngOnInit(): void {
     this.cargarNotificaciones();
