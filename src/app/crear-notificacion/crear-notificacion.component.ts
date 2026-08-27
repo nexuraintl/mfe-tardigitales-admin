@@ -142,7 +142,7 @@ export class CrearNotificacionComponent {
         mensaje: this.notificationMessage
       };
 
-      return this.http.post(`${API_BASE}/notificaciones?client_id=${this.clientId}`, payload);
+      return this.http.post(`${API_BASE}/notificaciones/create?client_id=${this.clientId}`, payload);
     });
 
     forkJoin(requests).subscribe({
@@ -153,7 +153,7 @@ export class CrearNotificacionComponent {
       },
       error: (err) => {
         console.error('Error al guardar notificaciones:', err);
-        this.currentError = this.errorHandler.parseError(err, 'MS_3821_NOTIFICACIONES_CREATE', `${API_BASE}/notificaciones`);
+        this.currentError = this.errorHandler.parseError(err, 'MS_3821_NOTIFICACIONES_CREATE', `${API_BASE}/notificaciones/create`);
         this.loading = false;
       }
     });
