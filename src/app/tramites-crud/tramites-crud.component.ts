@@ -67,7 +67,7 @@ export class TramitesCrudComponent implements OnInit {
   obtenerTramites(): void {
     this.loading = true;
     this.currentError = null;
-    this.http.get<Tramite[]>(`${API_BASE}/tramites?client_id=${this.clientId}`)
+    this.http.get<Tramite[]>(`${API_BASE}/tramites/list?client_id=${this.clientId}`)
       .subscribe({
         next: (data) => {
           this.tramites = data;
@@ -75,7 +75,7 @@ export class TramitesCrudComponent implements OnInit {
           this.cdr.detectChanges();
         },
         error: (err) => {
-          this.currentError = this.errorHandler.parseError(err, 'MS_3810_TRAMITES_GET', `${API_BASE}/tramites`);
+          this.currentError = this.errorHandler.parseError(err, 'MS_3810_TRAMITES_GET', `${API_BASE}/tramites/list`);
           this.loading = false;
           this.cdr.detectChanges();
         }
@@ -97,7 +97,7 @@ export class TramitesCrudComponent implements OnInit {
     this.modalOpen = true;
 
     // Consultar información fresca y actualizada directamente del servidor
-    this.http.get<Tramite>(`${API_BASE}/tramites/${tramite.id}?client_id=${this.clientId}`)
+    this.http.get<Tramite>(`${API_BASE}/tramites/get/${tramite.id}?client_id=${this.clientId}`)
       .subscribe({
         next: (freshData) => {
           if (freshData) {
@@ -107,7 +107,7 @@ export class TramitesCrudComponent implements OnInit {
         },
         error: (err) => {
           console.error('Error al consultar datos actualizados del trámite:', err);
-          const appErr = this.errorHandler.parseError(err, 'MS_3811_TRAMITES_NOT_FOUND', `${API_BASE}/tramites/${tramite.id}`);
+          const appErr = this.errorHandler.parseError(err, 'MS_3811_TRAMITES_NOT_FOUND', `${API_BASE}/tramites/get/${tramite.id}`);
           this.formError = `${appErr.title}: ${appErr.message}`;
           this.cdr.detectChanges();
         }
@@ -129,8 +129,8 @@ export class TramitesCrudComponent implements OnInit {
     this.formError = '';
 
     if (this.isEditing && this.formTramite.id) {
-      // Actualizar Trámite (PUT /tramites/{id}?client_id=...)
-      this.http.put<Tramite>(`${API_BASE}/tramites/${this.formTramite.id}?client_id=${this.clientId}`, this.formTramite)
+      // Actualizar Trámite (PUT /tramites/update/{id}?client_id=...)
+      this.http.put<Tramite>(`${API_BASE}/tramites/update/${this.formTramite.id}?client_id=${this.clientId}`, this.formTramite)
         .subscribe({
           next: () => {
             this.successMsg = 'El trámite ha sido actualizado correctamente.';
@@ -139,13 +139,13 @@ export class TramitesCrudComponent implements OnInit {
             this.obtenerTramites();
           },
           error: (err) => {
-            const appErr = this.errorHandler.parseError(err, 'MS_3813_TRAMITES_UPDATE', `${API_BASE}/tramites/${this.formTramite.id}`);
+            const appErr = this.errorHandler.parseError(err, 'MS_3813_TRAMITES_UPDATE', `${API_BASE}/tramites/update/${this.formTramite.id}`);
             this.formError = `${appErr.title}: ${appErr.message}`;
           }
         });
     } else {
-      // Crear Trámite (POST /tramites?client_id=...)
-      this.http.post<Tramite>(`${API_BASE}/tramites?client_id=${this.clientId}`, this.formTramite)
+      // Crear Trámite (POST /tramites/create?client_id=...)
+      this.http.post<Tramite>(`${API_BASE}/tramites/create?client_id=${this.clientId}`, this.formTramite)
         .subscribe({
           next: () => {
             this.successMsg = 'El trámite ha sido registrado exitosamente.';
@@ -154,7 +154,7 @@ export class TramitesCrudComponent implements OnInit {
             this.obtenerTramites();
           },
           error: (err) => {
-            const appErr = this.errorHandler.parseError(err, 'MS_3812_TRAMITES_CREATE', `${API_BASE}/tramites`);
+            const appErr = this.errorHandler.parseError(err, 'MS_3812_TRAMITES_CREATE', `${API_BASE}/tramites/create`);
             this.formError = `${appErr.title}: ${appErr.message}`;
           }
         });
@@ -174,7 +174,7 @@ export class TramitesCrudComponent implements OnInit {
   confirmarEliminar(): void {
     if (this.tramiteToDeleteId !== null) {
       const id = this.tramiteToDeleteId;
-      this.http.delete(`${API_BASE}/tramites/${id}?client_id=${this.clientId}`)
+      this.http.delete(`${API_BASE}/tramites/delete/${id}?client_id=${this.clientId}`)
         .subscribe({
           next: () => {
             this.successMsg = 'El trámite ha sido eliminado correctamente.';
@@ -183,7 +183,7 @@ export class TramitesCrudComponent implements OnInit {
             this.obtenerTramites();
           },
           error: (err) => {
-            this.currentError = this.errorHandler.parseError(err, 'MS_3814_TRAMITES_DELETE', `${API_BASE}/tramites/${id}`);
+            this.currentError = this.errorHandler.parseError(err, 'MS_3814_TRAMITES_DELETE', `${API_BASE}/tramites/delete/${id}`);
             this.cerrarConfirmarEliminar();
           }
         });
