@@ -43,7 +43,7 @@ export class ValidadorQrComponent implements OnInit {
     this.currentError = null;
     this.mensajeExito = '';
 
-    this.http.get<any>(`${API_BASE}/config-validador?client_id=${this.clientId}`)
+    this.http.get<any>(`${API_BASE}/tarjetas/validador-qr/get-config?client_id=${this.clientId}`)
       .subscribe({
         next: (data) => {
           if (data) {
@@ -54,7 +54,7 @@ export class ValidadorQrComponent implements OnInit {
         },
         error: (err) => {
           console.error('Error al cargar configuración del validador QR:', err);
-          this.currentError = this.errorHandler.parseError(err, 'MS_3850_VALIDADOR_CONFIG', `${API_BASE}/config-validador`);
+          this.currentError = this.errorHandler.parseError(err, 'MS_3850_VALIDADOR_CONFIG', `${API_BASE}/tarjetas/validador-qr/get-config`);
           this.loading = false;
           this.cdr.detectChanges();
         }
@@ -76,7 +76,7 @@ export class ValidadorQrComponent implements OnInit {
       val_estado: this.config.val_estado ? 1 : 0
     };
 
-    this.http.post(`${API_BASE}/validador-qr/config?client_id=${this.clientId}`, payload)
+    this.http.post(`${API_BASE}/tarjetas/validador-qr/update-config?client_id=${this.clientId}`, payload)
       .subscribe({
         next: (res: any) => {
           this.mensajeExito = 'Configuración del validador guardada correctamente.';
@@ -85,7 +85,7 @@ export class ValidadorQrComponent implements OnInit {
         },
         error: (err) => {
           console.error('Error al guardar config de validador:', err);
-          this.currentError = this.errorHandler.parseError(err, 'MS_3851_VALIDADOR_SAVE', `${API_BASE}/validador-qr/config`);
+          this.currentError = this.errorHandler.parseError(err, 'MS_3851_VALIDADOR_SAVE', `${API_BASE}/tarjetas/validador-qr/update-config`);
           this.loading = false;
           this.cdr.detectChanges();
         }

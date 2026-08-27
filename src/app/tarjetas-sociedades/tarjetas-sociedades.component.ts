@@ -77,7 +77,7 @@ export class TarjetasSociedadesComponent implements OnInit {
   cargarTarjetas(): void {
     this.loading = true;
     this.currentError = null;
-    this.http.get<TarjetaSociedad[]>(`${API_BASE}/tarjetas?tipo_tarjeta=sociedades&client_id=${this.clientId}`)
+    this.http.get<TarjetaSociedad[]>(`${API_BASE}/tarjetas/list?tipo_tarjeta=sociedades&client_id=${this.clientId}`)
       .subscribe({
         next: (data) => {
           this.tarjetas = data;
@@ -86,7 +86,7 @@ export class TarjetasSociedadesComponent implements OnInit {
         },
         error: (err) => {
           console.error('Error al cargar tarjetas de sociedades:', err);
-          this.currentError = this.errorHandler.parseError(err, 'MS_3830_TARJETAS_GET', `${API_BASE}/tarjetas`);
+          this.currentError = this.errorHandler.parseError(err, 'MS_3830_TARJETAS_GET', `${API_BASE}/tarjetas/list`);
           this.loading = false;
           this.cdr.detectChanges();
         }
@@ -333,7 +333,7 @@ export class TarjetasSociedadesComponent implements OnInit {
       client_id: this.clientId
     };
 
-    this.http.post(`${API_BASE}/tarjetas?client_id=${this.clientId}`, payload)
+    this.http.post(`${API_BASE}/tarjetas/create?client_id=${this.clientId}`, payload)
       .subscribe({
         next: (response) => {
           this.mensajeExito = "Emisión confirmada correctamente.";
@@ -343,7 +343,7 @@ export class TarjetasSociedadesComponent implements OnInit {
         },
         error: (err) => {
           console.error('Error al emitir tarjeta de sociedad:', err);
-          const appErr = this.errorHandler.parseError(err, 'MS_3831_TARJETAS_CREATE', `${API_BASE}/tarjetas`);
+          const appErr = this.errorHandler.parseError(err, 'MS_3831_TARJETAS_CREATE', `${API_BASE}/tarjetas/create`);
           this.mensajeError = `${appErr.title}: ${appErr.message}`;
           this.loading = false;
           this.cdr.detectChanges();
@@ -368,7 +368,7 @@ export class TarjetasSociedadesComponent implements OnInit {
     this.selectedTarjeta = t;
     this.vistaActiva = 'historial';
     this.selectedTarjetaHistorial = null;
-    this.http.get(`${API_BASE}/tarjetas/${t.id}/historial?client_id=${this.clientId}`)
+    this.http.get(`${API_BASE}/tarjetas/historial/${t.id}?client_id=${this.clientId}`)
       .subscribe({
         next: (res) => {
           this.selectedTarjetaHistorial = res;
@@ -376,7 +376,7 @@ export class TarjetasSociedadesComponent implements OnInit {
         },
         error: (err) => {
           console.error('Error al cargar historial de la tarjeta de sociedad:', err);
-          this.currentError = this.errorHandler.parseError(err, 'MS_3832_TARJETAS_HISTORIAL', `${API_BASE}/tarjetas/${t.id}/historial`);
+          this.currentError = this.errorHandler.parseError(err, 'MS_3832_TARJETAS_HISTORIAL', `${API_BASE}/tarjetas/historial/${t.id}`);
           this.cdr.detectChanges();
         }
       });
