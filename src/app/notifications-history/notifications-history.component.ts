@@ -47,7 +47,7 @@ export class NotificationsHistoryComponent implements OnInit {
 
   cargarNotificaciones(): void {
     this.currentError = null;
-    this.http.get<NotificationItem[]>(`${API_BASE}/notificaciones?client_id=${this.clientId}`)
+    this.http.get<NotificationItem[]>(`${API_BASE}/notificaciones/list?client_id=${this.clientId}`)
       .subscribe({
         next: (data) => {
           this.notificaciones = data;
@@ -55,7 +55,7 @@ export class NotificationsHistoryComponent implements OnInit {
         },
         error: (err) => {
           console.error('Error al cargar notificaciones de la API:', err);
-          this.currentError = this.errorHandler.parseError(err, 'MS_3820_NOTIFICACIONES_GET', `${API_BASE}/notificaciones`);
+          this.currentError = this.errorHandler.parseError(err, 'MS_3820_NOTIFICACIONES_GET', `${API_BASE}/notificaciones/list`);
         }
       });
   }
