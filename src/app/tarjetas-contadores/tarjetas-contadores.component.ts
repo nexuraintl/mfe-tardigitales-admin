@@ -274,37 +274,55 @@ export class TarjetasContadoresComponent implements OnInit {
     this.mensajeExito = '';
     this.cargandoBusqueda = true;
 
-    // Buscar en tarjetas locales si ya existe
-    const row = this.tarjetas.find(item =>
-      item.documento.replace(/\D/g, '') === identification.replace(/\D/g, '')
-    );
+    this.http.get<any>(`${API_BASE}/tarjetas/consult-registry?documento=${encodeURIComponent(identification)}&tipo_tarjeta=contadores&client_id=${this.clientId}`)
+      .subscribe({
+        next: (res) => {
+          this.cargandoBusqueda = false;
+          this.busquedaRealizada = true;
 
-    if (row) {
-      this.datosConsulta = {
-        solicitante: row.solicitante,
-        documento: row.documento,
-        matricula: row.matricula,
-        expediente: row.expediente,
-        correo: row.correo || `contador.${identification.slice(-4)}@example.com`,
-        universidad: "Universidad Nacional de Colombia",
-        existe: true
-      };
-    } else {
-      // Datos simulados idénticos a la plantilla
-      this.datosConsulta = {
-        solicitante: "Contador Público Consultado",
-        documento: `CC ${identification}`,
-        matricula: "TP " + identification.slice(-6).padStart(6, '0'),
-        expediente: Math.floor(100000 + Math.random() * 900000),
-        correo: `contador.${identification.slice(-4)}@example.com`,
-        universidad: "Universidad Nacional de Colombia",
-        existe: false
-      };
-    }
+          const item = res && res.disponibles && res.disponibles.length > 0 ? res.disponibles[0] : null;
 
-    this.busquedaRealizada = true;
-    this.cargandoBusqueda = false;
-    this.cdr.detectChanges();
+          if (item) {
+            const nombres = [item.NOMBRES, item.PRIMER_APELLIDO, item.SEGUNDO_APELLIDO]
+              .filter(Boolean)
+              .join(' ')
+              .trim();
+
+            const docTipo = item.TIPO_DOCUMENTO || 'CC';
+            const docNum = item.NO_DOCUMENTO || identification;
+
+            const localTarjeta = this.tarjetas.find(t =>
+              t.documento.replace(/\D/g, '') === String(docNum).replace(/\D/g, '')
+            );
+
+            this.datosConsulta = {
+              solicitante: nombres || "Contador Público",
+              documento: `${docTipo} ${docNum}`,
+              matricula: item.NO_TARJETA || `TP-${docNum}`,
+              expediente: item.NO_EXPD || item.EXPEDIENTE || 0,
+              correo: localTarjeta?.correo || `contador.${String(docNum).slice(-4)}@example.com`,
+              universidad: item.UNIVERSIDAD || "Universidad Nacional de Colombia",
+              estado: item.ESTADO_CONTADOR || "ACTIVO",
+              seccional: item.SECCIONAL || "",
+              resolucion: item.RESOLUCION || "",
+              existe: !!localTarjeta
+            };
+          } else {
+            this.datosConsulta = null;
+            this.mensajeError = "No se encontraron registros de matrícula oficial para la identificación ingresada.";
+          }
+          this.cdr.detectChanges();
+        },
+        error: (err) => {
+          console.error('Error al consultar registro en la JCC:', err);
+          this.cargandoBusqueda = false;
+          this.busquedaRealizada = true;
+          this.datosConsulta = null;
+          const appErr = this.errorHandler.parseError(err, 'MS_3834_CONSULTA_MATRICULA', `${API_BASE}/tarjetas/consult-registry`);
+          this.mensajeError = `${appErr.title}: ${appErr.message}`;
+          this.cdr.detectChanges();
+        }
+      });
   }
 
   confirmarEmision(): void {
