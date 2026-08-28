@@ -107,6 +107,13 @@ export const ERROR_MESSAGES = {
     title: 'Error de Trazabilidad',
     template: 'No fue posible obtener el historial de la tarjeta ({status})'
   },
+  MS_3834_CONSULTA_MATRICULA: {
+    code: 'MS-3834',
+    title: 'Error de Consulta Oficial',
+    template: 'No fue posible consultar el registro institucional en la API de la JCC ({status})',
+    suggestion: 'Verifique el número ingresado o intente nuevamente más tarde.'
+  },
+
 
   // Validador QR y Certificados
   MS_3850_VALIDADOR_CONFIG: {

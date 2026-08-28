@@ -277,39 +277,50 @@ export class TarjetasSociedadesComponent implements OnInit {
     this.mensajeExito = '';
     this.cargandoBusqueda = true;
 
-    // Buscar en tarjetas locales si ya existe por NIT/documento
-    const row = this.tarjetas.find(item =>
-      item.documento.replace(/\D/g, '') === identification.replace(/\D/g, '')
-    );
+    this.http.get<any>(`${API_BASE}/tarjetas/consult-registry?documento=${encodeURIComponent(identification)}&tipo_tarjeta=sociedades&client_id=${this.clientId}`)
+      .subscribe({
+        next: (res) => {
+          this.cargandoBusqueda = false;
+          this.busquedaRealizada = true;
 
-    if (row) {
-      this.datosConsulta = {
-        razonSocial: row.solicitante,
-        nit: row.documento,
-        registro: row.matricula,
-        expediente: row.expediente,
-        correo: row.correo || `contacto.${identification.slice(-4)}@example.com`,
-        representante: row.representante || "Representante Legal Registrado",
-        resolucion: `Resolución ${row.id.toString().padStart(4, '0')} de 2026`,
-        existe: true
-      };
-    } else {
-      // Datos simulados idénticos a la plantilla
-      this.datosConsulta = {
-        razonSocial: "Sociedad de Contadores Consultada",
-        nit: identification,
-        registro: "SOC-" + identification.slice(-6).padStart(6, '0'),
-        expediente: Math.floor(100000 + Math.random() * 900000),
-        correo: `contacto.${identification.slice(-4)}@example.com`,
-        representante: "Representante Legal Simulado",
-        resolucion: `Resolución ${identification.slice(-4)} de 2026`,
-        existe: false
-      };
-    }
+          const item = res && res.disponibles && res.disponibles.length > 0 ? res.disponibles[0] : null;
 
-    this.busquedaRealizada = true;
-    this.cargandoBusqueda = false;
-    this.cdr.detectChanges();
+          if (item) {
+            const docNum = item.NIT || identification;
+            const registroNum = String(item.INSCRIPCION || item.EXPEDIENTE || '0');
+
+            const localTarjeta = this.tarjetas.find(t =>
+              t.documento.replace(/\D/g, '') === String(docNum).replace(/\D/g, '')
+            );
+
+            this.datosConsulta = {
+              razonSocial: item.RAZON_SOCIAL || "Sociedad de Contadores",
+              nit: docNum,
+              registro: item.INSCRIPCION ? `SOC-${item.INSCRIPCION}` : (localTarjeta?.matricula || `SOC-${docNum}`),
+              expediente: item.NO_EXPD || item.EXPEDIENTE || 0,
+              correo: localTarjeta?.correo || `contacto.${String(docNum).slice(-4)}@example.com`,
+              representante: item.REPRESENTANTE || localTarjeta?.representante || "Representante Legal Registrado",
+              resolucion: item.RESOLUCION ? `Resolución ${item.RESOLUCION} de ${item.FECH_RESOLU ? item.FECH_RESOLU.split('-')[0] : '2026'}` : `Resolución de Registro`,
+              estado: item.ESTADO_SOCIEDAD || "ACTIVO",
+              tipoSociedad: item.TIPO_SOCIEDAD || "SOCIEDAD DE CONTADORES",
+              existe: !!localTarjeta
+            };
+          } else {
+            this.datosConsulta = null;
+            this.mensajeError = "No se encontraron registros oficiales para el NIT ingresado.";
+          }
+          this.cdr.detectChanges();
+        },
+        error: (err) => {
+          console.error('Error al consultar sociedad en la JCC:', err);
+          this.cargandoBusqueda = false;
+          this.busquedaRealizada = true;
+          this.datosConsulta = null;
+          const appErr = this.errorHandler.parseError(err, 'MS_3834_CONSULTA_MATRICULA', `${API_BASE}/tarjetas/consult-registry`);
+          this.mensajeError = `${appErr.title}: ${appErr.message}`;
+          this.cdr.detectChanges();
+        }
+      });
   }
 
   confirmarEmision(): void {
