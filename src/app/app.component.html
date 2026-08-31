@@ -1,174 +1,40 @@
-<div (click)="closeDropdowns()">
-  <!-- Barra Superior (Header) -->
-  <header class="nx-topbar">
-    <div class="nx-topbar-brand">
-      <button 
-        type="button" 
-        id="nxSidebarToggle" 
-        class="nx-menu-button" 
-        aria-label="Abrir o cerrar menú" 
-        title="Menú"
-        (click)="toggleSidebar(); $event.stopPropagation()"
-      >
-        <span></span><span></span><span></span>
-      </button>
-
-      <a routerLink="/" class="nx-brand-link" aria-label="Ir a tarjetas digitales">
-        <img class="nx-platform-logo" src="logo-app-solution.svg" alt="Nexura Platform">
-      </a>
+<nx-admin-layout
+  [appTitle]="'Tarjetas Digitales'"
+  [activePath]="currentUrl"
+  [menuSections]="menuSections"
+  [currentUser]="currentUser"
+  [appGrid]="appGrid"
+  [primaryAction]="primaryAction"
+  (nx-navigate)="onNavigate($any($event))"
+  (nx-app-change)="onAppChange($any($event))"
+  (nx-primary-action)="onPrimaryAction($any($event))"
+  (nx-profile-action)="onProfileAction($any($event))">
+  
+  <div class="container-fluid p-4">
+    <!-- BARRA ESTRUCTURAL GLOBAL DE NAVEGACION Y ACCIONES (LAYOUT) -->
+    <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-3 pb-3 border-bottom">
+      <div class="d-flex align-items-center gap-3">
+        <button type="button" class="nx-back-btn" (click)="onBack()" title="Volver atrás" aria-label="Volver atrás">
+          <i class="fa fa-arrow-left"></i>
+        </button>
+        <h1 class="nx-view-title">{{ pageTitle }}</h1>
+      </div>
+      
+      <!-- BOTONES DE ACCION DE LA VISTA (OPCIONALES Y DINÁMICOS) -->
+      <div class="d-flex gap-2 align-items-center" *ngIf="viewActions && viewActions.length > 0">
+        <button 
+          *ngFor="let act of viewActions"
+          type="button" 
+          [ngClass]="act.btnClass || 'btn btn-primary px-3 py-2 fw-semibold'" 
+          (click)="ejecutarAccion(act)">
+          <span *ngIf="act.icon" [class]="act.icon + ' me-1'"></span>
+          {{ act.label }}
+        </button>
+      </div>
     </div>
 
-    <div class="nx-topbar-entity">
-      <img class="nx-topbar-entity-logo" src="logo (1).png" alt="Unidad Administrativa Especial Junta Central de Contadores">
-    </div>
-
-    <nav class="nx-topbar-actions" aria-label="Acciones de usuario">
-      <!-- Menú de Apps -->
-      <div class="nx-dropdown-host">
-        <button 
-          type="button" 
-          class="nx-circle-button nx-dropdown-trigger" 
-          title="Aplicaciones"
-          (click)="toggleDropdown('apps'); $event.stopPropagation()"
-        >
-          <span class="nx-grid-icon"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></span>
-        </button>
-        <div class="nx-dropdown nx-apps-menu" [ngClass]="{'open': appsMenuOpen}" id="nxAppsMenu">
-          <div class="nx-dropdown-title">Aplicaciones</div>
-          <div class="nx-app-grid">
-            <a routerLink="/tarjetas-contadores">
-              <span class="nx-app-tile blue">▣</span><span>Tarjetas</span>
-            </a>
-          </div>
-        </div>
-      </div>
-
-      <!-- Configuración -->
-      <div class="nx-dropdown-host">
-        <button 
-          type="button" 
-          class="nx-circle-button nx-dropdown-trigger" 
-          title="Configuración"
-          (click)="toggleDropdown('settings'); $event.stopPropagation()"
-        >
-          ⚙
-        </button>
-        <div class="nx-dropdown" [ngClass]="{'open': settingsMenuOpen}" id="nxSettingsMenu">
-          <div class="nx-dropdown-title">Configuración</div>
-          <button type="button">⚙ <span>Configuración general</span></button>
-          <button type="button">? <span>Ayuda</span></button>
-        </div>
-      </div>
-
-      <!-- Perfil -->
-      <div class="nx-dropdown-host">
-        <button 
-          type="button" 
-          class="nx-avatar-button nx-dropdown-trigger" 
-          title="Fabian Vargas"
-          (click)="toggleDropdown('profile'); $event.stopPropagation()"
-        >
-          F
-        </button>
-        <div class="nx-dropdown nx-profile-menu" [ngClass]="{'open': profileMenuOpen}" id="nxProfileMenu">
-          <div class="nx-profile-summary">
-            <div class="nx-profile-avatar">F</div>
-            <div>
-              <strong>Fabian Vargas</strong>
-              <small>fvargas@nexura.com</small>
-              <span>Administrador</span>
-            </div>
-          </div>
-          <button type="button">👤 <span>Mis datos</span></button>
-          <button type="button">🔒 <span>Cambiar contraseña</span></button>
-          <button type="button">⏻ <span>Cerrar sesión</span></button>
-        </div>
-      </div>
-    </nav>
-  </header>
-
-  <div class="app">
-    <!-- Menú Lateral (Sidebar) -->
-    <aside class="sidebar" id="nxSidebar">
-      <nav class="menu">
-        <div class="menu-label">Gestión principal</div>
-
-        <a routerLink="/tarjetas-contadores" routerLinkActive="active" [routerLinkActiveOptions]="{exact: true}">
-          <span class="menu-icon">▣</span>
-          <span class="menu-text">Tarjetas Contadores</span>
-        </a>
-
-        <a routerLink="/sociedades" routerLinkActive="active" [routerLinkActiveOptions]="{exact: true}">
-          <span class="menu-icon">▣</span>
-          <span class="menu-text">Tarjetas Sociedades</span>
-        </a>
-
-        <a routerLink="/crear-notificacion" routerLinkActive="active" [routerLinkActiveOptions]="{exact: true}">
-          <span class="menu-icon">●</span>
-          <span class="menu-text">Crear notificación</span>
-        </a>
-
-        <a routerLink="/historial" routerLinkActive="active" [routerLinkActiveOptions]="{exact: true}">
-          <span class="menu-icon">◷</span>
-          <span class="menu-text">Historial de notificaciones</span>
-        </a>
-
-        <a routerLink="/crud" routerLinkActive="active" [routerLinkActiveOptions]="{exact: true}">
-          <span class="menu-icon">▤</span>
-          <span class="menu-text">Gestión de Trámites (CRUD)</span>
-        </a>
-
-        <div class="menu-divider"></div>
-        <div class="menu-label">Administración</div>
-
-        <a routerLink="/reportes" routerLinkActive="active" [routerLinkActiveOptions]="{exact: true}">
-          <span class="menu-icon">▥</span>
-          <span class="menu-text">Reportes</span>
-        </a>
-
-        <a routerLink="/certificados" routerLinkActive="active" [routerLinkActiveOptions]="{exact: true}">
-          <span class="menu-icon">▤</span>
-          <span class="menu-text">Certificados</span>
-        </a>
-
-        <a routerLink="/branding" routerLinkActive="active" [routerLinkActiveOptions]="{exact: true}">
-          <span class="menu-icon">✎</span>
-          <span class="menu-text">Branding</span>
-        </a>
-
-        <a routerLink="/validador-qr" routerLinkActive="active" [routerLinkActiveOptions]="{exact: true}">
-          <span class="menu-icon">▦</span>
-          <span class="menu-text">Validador QR</span>
-        </a>
-
-        <a routerLink="/auditoria" routerLinkActive="active" [routerLinkActiveOptions]="{exact: true}">
-          <span class="menu-icon">↺</span>
-          <span class="menu-text">Auditoría API</span>
-        </a>
-
-        <a routerLink="/usuarios" routerLinkActive="active" [routerLinkActiveOptions]="{exact: true}">
-          <span class="menu-icon">♙</span>
-          <span class="menu-text">Usuarios</span>
-        </a>
-      </nav>
-
-      <div class="profile">
-        <div class="avatar">FV</div>
-        <div class="profile-copy">
-          <strong>Fabian Vargas</strong>
-          <small>Administrador</small>
-        </div>
-      </div>
-
-      <div class="nx-sidebar-footer">
-        <img src="logo-app-solution.svg" alt="Nexura Platform">
-        <small>Versión 1.0.0</small>
-      </div>
-    </aside>
-
-    <!-- Contenido Principal -->
-    <main class="main">
-      <router-outlet></router-outlet>
-    </main>
+    <!-- Contenido Modular Puro del MFE -->
+    <router-outlet (activate)="onRouteActivate($event)"></router-outlet>
   </div>
-</div>
+
+</nx-admin-layout>
