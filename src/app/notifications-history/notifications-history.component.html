@@ -140,7 +140,7 @@
     </div>
 
     <div class="p-3">
-      <div class="table-responsive">
+      <div class="table-responsive" *ngIf="isTableReady">
         <table id="tablaHistorial" class="table table-hover align-middle mb-0 w-100">
           <thead class="table-light">
             <tr>
@@ -156,7 +156,7 @@
             </tr>
           </thead>
           <tbody id="historyTableBody">
-            <tr *ngFor="let item of notificaciones; let i = index">
+            <tr *ngFor="let item of notificaciones; let i = index; trackBy: trackByNotifId">
               <td class="ps-3 text-muted small">{{ i + 1 }}</td>
               <td>
                 <strong class="text-dark">{{ item.titulo }}</strong>

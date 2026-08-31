@@ -45,6 +45,8 @@ export class TramitesCrudComponent implements OnInit, OnDestroy, AfterViewInit {
   deleteModalOpen = false;
   tramiteToDeleteId: number | null = null;
 
+  isTableReady = true;
+
   constructor(
     private http: HttpClient,
     private cdr: ChangeDetectorRef,
@@ -104,17 +106,20 @@ export class TramitesCrudComponent implements OnInit, OnDestroy, AfterViewInit {
   }
 
   initDataTable(): void {
+    if (!this.isTableReady) return;
     this.ensureDataTablesLoaded().then(() => {
       setTimeout(() => {
         const tableEl = document.getElementById('tablaTramites');
         if (!tableEl) return;
-        this.destroyDataTable();
 
         const dtConstructor = (window as any).DataTable;
         if (typeof dtConstructor === 'function') {
           this.dtInstance = new dtConstructor('#tablaTramites', {
             pageLength: 10,
             responsive: true,
+            columnDefs: [
+              { targets: 0, type: 'num' }
+            ],
             order: [[0, 'desc']], // Ordenar por ID descendente
             language: {
               search: "",
@@ -169,20 +174,33 @@ export class TramitesCrudComponent implements OnInit, OnDestroy, AfterViewInit {
     };
   }
 
+  trackByTramiteId(index: number, item: Tramite): number | undefined {
+    return item.id || index;
+  }
+
   obtenerTramites(): void {
+    this.destroyDataTable();
+    this.isTableReady = false;
     this.loading = true;
     this.currentError = null;
-    this.http.get<Tramite[]>(`${API_BASE}/tramites/list?client_id=${this.clientId}`)
+    this.cdr.detectChanges();
+
+    const ts = new Date().getTime();
+    this.http.get<Tramite[]>(`${API_BASE}/tramites/list?client_id=${this.clientId}&_t=${ts}`)
       .subscribe({
         next: (data) => {
-          this.tramites = data;
+          this.tramites = [...(data || [])];
           this.loading = false;
+          this.isTableReady = true;
           this.cdr.detectChanges();
-          this.initDataTable();
+          setTimeout(() => {
+            this.initDataTable();
+          }, 60);
         },
         error: (err) => {
           this.currentError = this.errorHandler.parseError(err, 'MS_3810_TRAMITES_GET', `${API_BASE}/tramites/list`);
           this.loading = false;
+          this.isTableReady = true;
           this.cdr.detectChanges();
         }
       });
