@@ -2,8 +2,7 @@ import { Component, CUSTOM_ELEMENTS_SCHEMA, OnInit, inject, ChangeDetectorRef } 
 import { CommonModule } from '@angular/common';
 import { Router, RouterOutlet, NavigationEnd } from '@angular/router';
 import { filter } from 'rxjs';
-import './shared/nexura-layout';
-import { MenuSection, UserProfile, AppTile, PrimaryAction } from './shared/nexura-layout';
+import { MenuSection, UserProfile, AppTile, PrimaryAction } from './shared/nexura-layout/types';
 
 export interface HeaderAction {
   id: string;
@@ -52,12 +51,8 @@ export class App implements OnInit {
     initials: 'FV'
   };
 
-  // Acción principal destacada sobre el sidebar (FAB estilo Google, configurable y opcional por vista)
-  primaryAction: PrimaryAction | null = {
-    label: 'Radicar',
-    icon: 'fa fa-plus',
-    path: '/crud'
-  };
+  // Acción principal destacada sobre el sidebar (configurable y opcional por vista)
+  primaryAction: PrimaryAction | null = null;
 
   // Configuración de aplicaciones globales en el topbar
   appGrid: AppTile[] = [
@@ -69,7 +64,6 @@ export class App implements OnInit {
     { id: 'validador', name: 'Validador QR', color: 'dark', iconClass: 'fa fa-qrcode', path: '/validador-qr' }
   ];
 
-  // Configuración de menú modular con FontAwesome en el sidebar
   menuSections: MenuSection[] = [
     {
       sectionTitle: 'Gestión principal',
@@ -142,40 +136,51 @@ export class App implements OnInit {
   private updateViewActions(url: string) {
     const cleanUrl = url.split('?')[0].split('#')[0];
     if (cleanUrl.includes('tarjetas-contadores')) {
+      this.primaryAction = {
+        label: 'Nueva tarjeta',
+        icon: 'fa fa-plus',
+        action: () => this.activeComponent?.abrirNuevaTarjeta?.()
+      };
       this.viewActions = [
+        {
+          id: 'exportar-csv',
+          label: 'Exportar CSV',
+          icon: 'fa fa-download',
+          btnClass: 'btn btn-outline-secondary px-3 py-2 fw-semibold',
+          action: () => this.activeComponent?.exportarCSV?.()
+        },
         {
           id: 'emision-masiva',
           label: 'Emisión masiva',
           icon: 'fa fa-file-excel-o',
           btnClass: 'btn btn-outline-secondary px-3 py-2 fw-semibold',
           action: () => this.activeComponent?.abrirEmisionMasiva?.()
-        },
-        {
-          id: 'nueva-tarjeta',
-          label: 'Nueva tarjeta',
-          icon: 'fa fa-plus',
-          btnClass: 'btn btn-primary px-3 py-2 fw-semibold',
-          action: () => this.activeComponent?.abrirNuevaTarjeta?.()
         }
       ];
     } else if (cleanUrl.includes('sociedades')) {
+      this.primaryAction = {
+        label: 'Nueva tarjeta',
+        icon: 'fa fa-plus',
+        action: () => this.activeComponent?.abrirNuevaTarjeta?.()
+      };
       this.viewActions = [
+        {
+          id: 'exportar-csv',
+          label: 'Exportar CSV',
+          icon: 'fa fa-download',
+          btnClass: 'btn btn-outline-secondary px-3 py-2 fw-semibold',
+          action: () => this.activeComponent?.exportarCSV?.()
+        },
         {
           id: 'emision-masiva',
           label: 'Emisión masiva',
           icon: 'fa fa-file-excel-o',
           btnClass: 'btn btn-outline-secondary px-3 py-2 fw-semibold',
           action: () => this.activeComponent?.abrirEmisionMasiva?.()
-        },
-        {
-          id: 'nueva-tarjeta',
-          label: 'Nueva tarjeta',
-          icon: 'fa fa-plus',
-          btnClass: 'btn btn-primary px-3 py-2 fw-semibold',
-          action: () => this.activeComponent?.abrirNuevaTarjeta?.()
         }
       ];
     } else if (cleanUrl.includes('crud')) {
+      this.primaryAction = null;
       this.viewActions = [
         {
           id: 'actualizar-tramites',
@@ -193,6 +198,7 @@ export class App implements OnInit {
         }
       ];
     } else if (cleanUrl.includes('historial')) {
+      this.primaryAction = null;
       this.viewActions = [
         {
           id: 'exportar-csv',
@@ -210,6 +216,7 @@ export class App implements OnInit {
         }
       ];
     } else if (cleanUrl.includes('crear-notificacion')) {
+      this.primaryAction = null;
       this.viewActions = [
         {
           id: 'ver-historial',
@@ -220,6 +227,7 @@ export class App implements OnInit {
         }
       ];
     } else if (cleanUrl.includes('certificados')) {
+      this.primaryAction = null;
       this.viewActions = [
         {
           id: 'exportar-csv',
@@ -230,6 +238,7 @@ export class App implements OnInit {
         }
       ];
     } else {
+      this.primaryAction = null;
       this.viewActions = [];
     }
   }
@@ -266,10 +275,13 @@ export class App implements OnInit {
   }
 
   onPrimaryAction(event: CustomEvent): void {
-    const action = event.detail?.action;
-    console.log('[MFE] Acción principal solicitada:', action);
-    if (action?.path) {
-      this.navegarA(action.path);
+    const actionObj = this.primaryAction || event.detail?.action;
+    console.log('[MFE] Acción principal solicitada:', actionObj);
+    if (typeof actionObj?.action === 'function') {
+      actionObj.action();
+      this.cdr.detectChanges();
+    } else if (actionObj?.path) {
+      this.navegarA(actionObj.path);
     }
   }
 

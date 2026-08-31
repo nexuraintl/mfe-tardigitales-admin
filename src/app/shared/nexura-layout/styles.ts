@@ -478,47 +478,54 @@ export const adminLayoutStyles = css`
     width: var(--nx-sidebar-collapsed-width);
   }
 
-  /* ================= BOTON DE ACCION PRINCIPAL (FAB ESTILO GOOGLE) ================= */
+  /* ================= BOTON DE ACCION PRINCIPAL EN SIDEBAR ================= */
   .nx-sidebar-action-wrapper {
-    padding: 8px 16px 16px 12px;
+    padding: 12px 14px 16px;
     display: flex;
-    justify-content: flex-start;
+    justify-content: center;
+    align-items: center;
+    width: 100%;
+    box-sizing: border-box;
   }
 
   .nx-sidebar-action-btn {
-    min-height: 48px;
-    padding: 0 24px 0 16px;
-    border-radius: 24px;
+    width: 100%;
+    min-height: 42px;
+    padding: 0 16px;
+    border-radius: 8px;
     border: 1px solid #dadce0;
     background: #ffffff;
     color: #3c4043;
     font-size: 14px;
-    font-weight: 500;
+    font-weight: 600;
     display: inline-flex;
     align-items: center;
-    gap: 12px;
+    justify-content: center;
+    gap: 10px;
     cursor: pointer;
-    box-shadow: 0 1px 2px 0 rgba(60, 64, 67, 0.3), 0 1px 3px 1px rgba(60, 64, 67, 0.15);
+    box-shadow: 0 1px 2px 0 rgba(60, 64, 67, 0.2);
     transition: box-shadow 0.2s ease, background-color 0.15s ease, transform 0.1s ease;
     font-family: inherit;
     user-select: none;
     text-decoration: none;
     white-space: nowrap;
+    box-sizing: border-box;
   }
 
   .nx-sidebar-action-btn:hover {
-    background-color: #fafafb;
-    box-shadow: 0 1px 3px 0 rgba(60, 64, 67, 0.3), 0 4px 8px 3px rgba(60, 64, 67, 0.15);
+    background-color: #f1f3f4;
+    border-color: #c4c7c5;
+    box-shadow: 0 2px 6px 0 rgba(60, 64, 67, 0.15);
     color: #202124;
   }
 
   .nx-sidebar-action-btn:active {
-    box-shadow: 0 1px 2px 0 rgba(60, 64, 67, 0.3);
-    transform: scale(0.98);
+    box-shadow: 0 1px 2px 0 rgba(60, 64, 67, 0.25);
+    transform: scale(0.99);
   }
 
   .nx-sidebar-action-btn i.fa {
-    font-size: 16px;
+    font-size: 14px;
     color: #5f6368;
     font-weight: bold;
   }
@@ -534,11 +541,11 @@ export const adminLayoutStyles = css`
   }
 
   .nx-sidebar-collapsed .nx-sidebar-action-btn {
-    width: 44px;
-    height: 44px;
-    min-height: 44px;
+    width: 42px;
+    height: 42px;
+    min-height: 42px;
     padding: 0;
-    border-radius: 50%;
+    border-radius: 8px;
     justify-content: center;
     gap: 0;
   }
