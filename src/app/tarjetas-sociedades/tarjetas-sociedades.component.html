@@ -17,7 +17,7 @@
       </div>
 
       <div class="p-3">
-        <div class="table-responsive">
+        <div class="table-responsive" *ngIf="isTableReady">
           <table id="tablaSociedades" class="table table-hover align-middle mb-0 w-100">
             <thead class="table-light">
               <tr>
@@ -33,7 +33,7 @@
               </tr>
             </thead>
             <tbody>
-              <tr *ngFor="let row of tarjetas; let i = index">
+              <tr *ngFor="let row of tarjetas; let i = index; trackBy: trackByTarjetaId">
                 <td class="ps-3 text-muted small">{{ i + 1 }}</td>
                 <td><code>{{ row.expediente }}</code></td>
                 <td><strong class="text-dark">{{ row.solicitante }}</strong></td>
