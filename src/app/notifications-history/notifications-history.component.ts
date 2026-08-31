@@ -103,6 +103,8 @@ export class NotificationsHistoryComponent implements OnInit, OnDestroy, AfterVi
     });
   }
 
+  isTableReady = true;
+
   private destroyDataTable(): void {
     if (this.dtInstance) {
       try {
@@ -113,11 +115,11 @@ export class NotificationsHistoryComponent implements OnInit, OnDestroy, AfterVi
   }
 
   initDataTable(): void {
+    if (!this.isTableReady) return;
     this.ensureDataTablesLoaded().then(() => {
       setTimeout(() => {
         const tableEl = document.getElementById('tablaHistorial');
         if (!tableEl) return;
-        this.destroyDataTable();
 
         const dtConstructor = (window as any).DataTable;
         if (typeof dtConstructor === 'function') {
@@ -189,18 +191,32 @@ export class NotificationsHistoryComponent implements OnInit, OnDestroy, AfterVi
     });
   }
 
+  trackByNotifId(index: number, item: NotificationItem): number | string {
+    return item.id || index;
+  }
+
   cargarNotificaciones(): void {
+    this.destroyDataTable();
+    this.isTableReady = false;
     this.currentError = null;
-    this.http.get<NotificationItem[]>(`${API_BASE}/notificaciones/list?client_id=${this.clientId}`)
+    this.cdr.detectChanges();
+
+    const ts = new Date().getTime();
+    this.http.get<NotificationItem[]>(`${API_BASE}/notificaciones/list?client_id=${this.clientId}&_t=${ts}`)
       .subscribe({
         next: (data) => {
-          this.notificaciones = data;
+          this.notificaciones = [...(data || [])];
+          this.isTableReady = true;
           this.cdr.detectChanges();
-          this.initDataTable();
+          setTimeout(() => {
+            this.initDataTable();
+          }, 60);
         },
         error: (err) => {
           console.error('Error al cargar notificaciones de la API:', err);
           this.currentError = this.errorHandler.parseError(err, 'MS_3820_NOTIFICACIONES_GET', `${API_BASE}/notificaciones/list`);
+          this.isTableReady = true;
+          this.cdr.detectChanges();
         }
       });
   }

@@ -20,7 +20,7 @@
     </div>
 
     <div class="p-3">
-      <div class="table-responsive">
+      <div class="table-responsive" *ngIf="isTableReady">
         <table id="tablaTramites" class="table table-hover align-middle mb-0 w-100">
           <thead class="table-light">
             <tr>
@@ -34,8 +34,8 @@
             </tr>
           </thead>
           <tbody>
-            <tr *ngFor="let item of tramites">
-              <td class="ps-3 text-muted small">#{{ item.id }}</td>
+            <tr *ngFor="let item of tramites; trackBy: trackByTramiteId">
+              <td class="ps-3 text-muted small" [attr.data-order]="item.id">#{{ item.id }}</td>
               <td><strong class="text-dark">{{ item.nombre }}</strong></td>
               <td>
                 <span class="badge bg-light text-dark border">
