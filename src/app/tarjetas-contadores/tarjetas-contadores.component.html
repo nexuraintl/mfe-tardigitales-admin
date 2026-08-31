@@ -1,408 +1,364 @@
-<section class="view">
-  <ng-container *ngIf="vistaActiva === 'listado'">
-  <!-- Banner del Módulo -->
-  <section class="card module-banner">
-    <div class="banner-layout">
-      <div class="banner-icon">🪪</div>
-      <div class="banner-content">
-        <div class="banner-title-line">
-          <h2>Tarjeta Digital para Contadores</h2>
-          <span class="banner-badge">PERSONA NATURAL</span>
+<!-- LISTADO PRINCIPAL -->
+<ng-container *ngIf="vistaActiva === 'listado'">
+
+    <!-- Alertas del Sistema -->
+    <nx-alert [error]="currentError" (onClose)="currentError = null"></nx-alert>
+    <nx-alert *ngIf="mensajeExito" type="success" [message]="mensajeExito" (onClose)="mensajeExito = ''"></nx-alert>
+
+    <!-- Tabla de Datos DataTables 2.3.1 -->
+    <div class="card shadow-sm border-0">
+      <div class="card-header bg-white py-3 border-bottom d-flex justify-content-between align-items-center flex-wrap gap-2">
+        <div>
+          <h5 class="card-title fw-bold mb-0 text-dark">
+            <span class="fa fa-table text-primary me-2"></span> Solicitudes de tarjetas para contadores
+          </h5>
+          <small class="text-muted">Resultados del módulo de persona natural.</small>
         </div>
-        <p>Gestión de solicitudes y credenciales digitales de contadores públicos registrados.</p>
-      </div>
-    </div>
-  </section>
 
-  <!-- Alertas del Sistema -->
-  <nx-alert [error]="currentError" (onClose)="currentError = null"></nx-alert>
-  <nx-alert *ngIf="mensajeExito" type="success" [message]="mensajeExito" (onClose)="mensajeExito = ''"></nx-alert>
-
-  <!-- Barra de Herramientas -->
-  <section class="card toolbar">
-    <button class="btn btn-primary btn-sm" (click)="abrirNuevaTarjeta()">💳 Nueva tarjeta</button>
-    <button class="btn btn-outline-primary btn-sm" (click)="abrirEmisionMasiva()">Emisión masiva</button>
-  </section>
-
-  <!-- Tarjeta de Filtros -->
-  <section class="card filters-card">
-    <div class="filter-grid">
-      <div class="field">
-        <label for="cardsFilterColumn">Columna</label>
-        <select class="control" id="cardsFilterColumn" [(ngModel)]="filterColumn">
-          <option value="">Seleccione una columna</option>
-          <option value="solicitante">Contador</option>
-          <option value="documento">Documento</option>
-          <option value="matricula">Tarjeta profesional</option>
-          <option value="tarjeta">Estado de tarjeta</option>
-        </select>
-      </div>
-
-      <div class="field">
-        <label for="cardsFilterValue">Valor</label>
-        <input class="control" id="cardsFilterValue" placeholder="Escribe para filtrar..." [(ngModel)]="filterValue">
-      </div>
-    </div>
-  </section>
-
-  <!-- Tabla de Datos -->
-  <section class="card table-card">
-    <div class="table-card-head">
-      <div>
-        <h3>Solicitudes de tarjetas para contadores</h3>
-        <p>Resultados del módulo de persona natural.</p>
-      </div>
-
-      <div class="table-head-actions">
-        <button type="button" class="btn btn-outline-primary" style="white-space: nowrap; display: inline-flex; align-items: center; gap: 6px;">⬇ Exportar CSV</button>
-        <input class="control" placeholder="Buscar en la tabla..." [(ngModel)]="searchQuery">
-        <select class="control" style="min-width:130px" [(ngModel)]="pageSize">
-          <option [ngValue]="5">5 registros</option>
-          <option [ngValue]="10">10 registros</option>
-          <option [ngValue]="25">25 registros</option>
-        </select>
-      </div>
-    </div>
-
-    <div class="table-wrap">
-      <table class="data-table">
-        <thead>
-          <tr>
-            <th>No</th>
-            <th>Expediente</th>
-            <th>Contador</th>
-            <th>Documento</th>
-            <th>Tarjeta profesional</th>
-            <th>Correo</th>
-            <th>Tarjeta</th>
-            <th>Fecha</th>
-            <th>Acciones</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr *ngFor="let row of paginatedTarjetas; let i = index">
-            <td>{{ recordRangeStart + i }}</td>
-            <td>{{ row.expediente }}</td>
-            <td><strong>{{ row.solicitante }}</strong></td>
-            <td>{{ row.documento }}</td>
-            <td><code>{{ row.matricula }}</code></td>
-            <td>{{ row.correo }}</td>
-            <td>
-              <span class="badge" [ngClass]="{
-                'success': row.tarjeta === 'Activa' || row.tarjeta === 'Emitida',
-                'warning': row.tarjeta === 'Pendiente',
-                'danger': row.tarjeta === 'Cancelada' || row.tarjeta === 'Suspendida'
-              }">{{ row.tarjeta }}</span>
-            </td>
-            <td>{{ row.fecha }}</td>
-            <td>
-              <div class="row-actions">
-                <button class="btn btn-outline-primary btn-sm btn-icon" title="Ver detalle" (click)="abrirDetalle(row)">👁️</button>
-                <div class="card-actions-host">
-                  <button class="btn btn-outline-secondary btn-sm btn-icon card-actions-toggle" [attr.aria-expanded]="activeMenuId === row.id" (click)="toggleActionsMenu($event, row.id)" title="Más acciones">⋮</button>
-                  <div class="card-actions-menu" [ngClass]="{'open': activeMenuId === row.id}">
-                    <button type="button" class="view-card-btn" (click)="abrirTarjeta(row); activeMenuId = null">▣ Ver tarjeta</button>
-                    <button type="button" class="view-card-history-btn" (click)="abrirHistorial(row); activeMenuId = null">◷ Historial</button>
-                  </div>
-                </div>
-              </div>
-            </td>
-          </tr>
-          <tr *ngIf="filteredTarjetas.length === 0">
-            <td colspan="9">
-              <div class="empty-state">No se encontraron solicitudes con los filtros seleccionados.</div>
-            </td>
-          </tr>
-        </tbody>
-      </table>
-    </div>
-
-    <div class="table-footer">
-      <span>Mostrando {{ recordRangeStart }} a {{ recordRangeEnd }} de {{ filteredTarjetas.length }} registros</span>
-      <div class="pagination">
-        <button class="page-btn" [disabled]="currentPage === 1" (click)="cambiarPagina(currentPage - 1)">&lt;</button>
-        <button class="page-btn" *ngFor="let p of [].constructor(totalPages); let idx = index" [ngClass]="{'active': currentPage === idx + 1}" (click)="cambiarPagina(idx + 1)">
-          {{ idx + 1 }}
-        </button>
-        <button class="page-btn" [disabled]="currentPage === totalPages" (click)="cambiarPagina(currentPage + 1)">&gt;</button>
-      </div>
-    </div>
-  </section>
-</ng-container>
-
-<!-- VISTA NUEVA TARJETA - EMISION INDIVIDUAL -->
-<ng-container *ngIf="vistaActiva === 'emision-individual'">
-  <header class="page-header">
-    <div>
-      <h1>Nueva tarjeta — emisión individual</h1>
-      <p id="individualIssueHeaderText">Emita una tarjeta profesional para un contador registrado.</p>
-    </div>
-    <div class="header-actions">
-      <button type="button" class="btn btn-outline-secondary" (click)="cerrarNuevaTarjeta()">← Volver</button>
-    </div>
-  </header>
-
-  <div class="individual-issue-content">
-    <section class="card individual-issue-card">
-      <div class="individual-issue-card-header" id="individualIssueStepTitle">1. Identificación del contador</div>
-      <div class="individual-issue-card-body">
-        <p class="individual-issue-help" id="individualIssueHelp">Ingrese el número de identificación. El sistema consulta el registro de matrícula y muestra una vista previa antes de emitir.</p>
-        <div class="individual-issue-search">
-          <input type="text" id="individualIssueIdentification" inputmode="numeric" maxlength="20" class="control" placeholder="Número de identificación" [(ngModel)]="nuevaIdentificacion" (keyup.enter)="consultarMatricula()">
-          <button type="button" class="btn btn-primary btn-sm" id="individualIssueSearch" (click)="consultarMatricula()">
-            <span *ngIf="!cargandoBusqueda">⌕ Consultar matrícula</span>
-            <span *ngIf="cargandoBusqueda">Buscando...</span>
+        <div class="d-flex gap-2">
+          <button type="button" class="btn btn-outline-secondary px-3 py-2 fw-semibold" (click)="exportarCSV()">
+            <span class="fa fa-download me-1"></span> Exportar CSV
           </button>
         </div>
-        <div *ngIf="mensajeError" class="text-danger" style="margin-top: 10px; font-size: 12px; color: var(--danger);">{{ mensajeError }}</div>
       </div>
-    </section>
 
-    <section id="individualIssuePreview" class="card individual-issue-card individual-issue-preview" [ngClass]="{'visible': busquedaRealizada && datosConsulta}">
-      <div class="individual-issue-card-header preview">2. Vista previa de la tarjeta</div>
-      <div class="individual-issue-card-body">
-        <div class="individual-holder">
-          <div class="individual-holder-avatar" id="individualIssueAvatar">👤</div>
-          <div style="flex:1">
-            <h3 id="individualIssueName">{{ datosConsulta?.solicitante }}</h3>
-            <div class="individual-holder-details">
-              <p><span>Número de documento</span><strong id="individualIssueDocument">{{ datosConsulta?.documento }}</strong></p>
-              <p><span>Tarjeta profesional</span><strong id="individualIssueRegistration">{{ datosConsulta?.matricula }}</strong></p>
-              <p><span id="individualIssueExtraLabel">Universidad</span><strong id="individualIssueExtraValue">{{ datosConsulta?.universidad }}</strong></p>
-              <p><span>Estado</span><strong><span class="status approved">Activo</span></strong></p>
+      <div class="p-3">
+        <div class="table-responsive">
+          <table id="tablaContadores" class="table table-hover align-middle mb-0 w-100">
+            <thead class="table-light">
+              <tr>
+                <th scope="col" class="ps-3" style="width: 50px;">#</th>
+                <th scope="col">Expediente</th>
+                <th scope="col">Contador</th>
+                <th scope="col">Documento</th>
+                <th scope="col">Tarjeta profesional</th>
+                <th scope="col">Correo</th>
+                <th scope="col">Estado</th>
+                <th scope="col">Fecha</th>
+                <th scope="col" class="text-end pe-3" data-orderable="false">Acciones</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let row of tarjetas; let i = index">
+                <td class="ps-3 text-muted small">{{ i + 1 }}</td>
+                <td><code>{{ row.expediente }}</code></td>
+                <td><strong class="text-dark">{{ row.solicitante }}</strong></td>
+                <td>{{ row.documento }}</td>
+                <td><span class="badge bg-light text-dark border">{{ row.matricula }}</span></td>
+                <td class="text-muted small">{{ row.correo }}</td>
+                <td>
+                  <span class="badge" [ngClass]="{
+                    'bg-success': row.tarjeta === 'Activa' || row.tarjeta === 'Emitida',
+                    'bg-warning text-dark': row.tarjeta === 'Pendiente',
+                    'bg-danger': row.tarjeta === 'Cancelada' || row.tarjeta === 'Suspendida'
+                  }">{{ row.tarjeta }}</span>
+                </td>
+                <td class="text-muted small">{{ row.fecha }}</td>
+                <td class="text-end pe-3">
+                  <div class="btn-group btn-group-sm">
+                    <button class="btn btn-outline-primary" title="Ver detalle" (click)="abrirDetalle(row)">
+                      <span class="fa fa-eye"></span>
+                    </button>
+                    <button class="btn btn-outline-secondary" title="Ver tarjeta" (click)="abrirTarjeta(row)">
+                      <span class="fa fa-id-card-o"></span>
+                    </button>
+                    <button class="btn btn-outline-secondary" title="Historial" (click)="abrirHistorial(row)">
+                      <span class="fa fa-history"></span>
+                    </button>
+                  </div>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </ng-container>
+
+  <!-- VISTA NUEVA TARJETA - EMISION INDIVIDUAL -->
+  <ng-container *ngIf="vistaActiva === 'emision-individual'">
+    <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
+      <div>
+        <h1 class="h3 fw-bold text-dark mb-1">Nueva tarjeta — emisión individual</h1>
+        <p class="text-muted mb-0">Emita una tarjeta profesional para un contador registrado.</p>
+      </div>
+      <button type="button" class="btn btn-outline-secondary" (click)="cerrarNuevaTarjeta()">
+        <span class="fa fa-arrow-left me-1"></span> Volver
+      </button>
+    </div>
+
+    <div class="row g-4">
+      <div class="col-lg-6">
+        <div class="card shadow-sm border-0 mb-4">
+          <div class="card-header bg-white py-3 border-bottom">
+            <h5 class="card-title fw-bold mb-0 text-dark">
+              <span class="fa fa-search text-primary me-2"></span> 1. Identificación del contador
+            </h5>
+          </div>
+          <div class="card-body">
+            <p class="text-muted small mb-3">Ingrese el número de identificación. El sistema consultará el registro de matrícula.</p>
+            <div class="input-group mb-3">
+              <input type="text" id="individualIssueIdentification" inputmode="numeric" maxlength="20" class="form-control" placeholder="Número de identificación" [(ngModel)]="nuevaIdentificacion" (keyup.enter)="consultarMatricula()">
+              <button type="button" class="btn btn-primary" id="individualIssueSearch" (click)="consultarMatricula()" [disabled]="cargandoBusqueda">
+                <span *ngIf="!cargandoBusqueda"><span class="fa fa-search me-1"></span> Consultar</span>
+                <span *ngIf="cargandoBusqueda"><span class="spinner-border spinner-border-sm me-1"></span> Buscando...</span>
+              </button>
+            </div>
+            <div *ngIf="mensajeError" class="alert alert-danger py-2 px-3 small mb-0">{{ mensajeError }}</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="col-lg-6" *ngIf="busquedaRealizada && datosConsulta">
+        <div class="card shadow-sm border-0 mb-4">
+          <div class="card-header bg-white py-3 border-bottom">
+            <h5 class="card-title fw-bold mb-0 text-dark">
+              <span class="fa fa-id-card text-success me-2"></span> 2. Vista previa de la tarjeta
+            </h5>
+          </div>
+          <div class="card-body">
+            <div class="p-3 bg-light rounded-3 border mb-3">
+              <div class="d-flex align-items-center gap-3 mb-3">
+                <div class="p-3 bg-primary text-white rounded-circle fs-3"><span class="fa fa-user"></span></div>
+                <div>
+                  <h5 class="fw-bold mb-0 text-dark">{{ datosConsulta?.solicitante }}</h5>
+                  <span class="badge bg-success">Activo</span>
+                </div>
+              </div>
+              <div class="row g-2 small">
+                <div class="col-6"><span class="text-muted">Documento:</span> <strong>{{ datosConsulta?.documento }}</strong></div>
+                <div class="col-6"><span class="text-muted">T. Profesional:</span> <strong>{{ datosConsulta?.matricula }}</strong></div>
+                <div class="col-12"><span class="text-muted">Universidad:</span> <strong>{{ datosConsulta?.universidad }}</strong></div>
+              </div>
+            </div>
+
+            <div *ngIf="!mensajeExito">
+              <button type="button" id="individualIssueConfirm" class="btn btn-success w-100 py-2 fw-semibold" (click)="confirmarEmision()" [disabled]="loading">
+                <span *ngIf="!loading"><span class="fa fa-check me-1"></span> Confirmar emisión</span>
+                <span *ngIf="loading"><span class="spinner-border spinner-border-sm me-1"></span> Procesando...</span>
+              </button>
+            </div>
+            
+            <div *ngIf="mensajeExito" class="alert alert-success mt-3 mb-0">
+              <span class="fa fa-check-circle me-1"></span> {{ mensajeExito }}
             </div>
           </div>
         </div>
-
-        <div class="individual-confirm-row" *ngIf="!mensajeExito">
-          <button type="button" id="individualIssueConfirm" class="btn btn-success individual-confirm-button" (click)="confirmarEmision()" [disabled]="loading">
-            <span *ngIf="!loading">Confirmar emisión</span>
-            <span *ngIf="loading">Procesando...</span>
-          </button>
-        </div>
-        
-        <div id="individualIssueResult" class="individual-result" [ngClass]="{'visible': mensajeExito}" role="status" style="margin-top: 15px;">
-          {{ mensajeExito }}
-        </div>
       </div>
-    </section>
-  </div>
-</ng-container>
+    </div>
+  </ng-container>
 
   <!-- VISTA EMISION MASIVA -->
   <ng-container *ngIf="vistaActiva === 'emision-masiva'">
-    <header class="page-header">
+    <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
       <div>
-        <h1>Emisión masiva de credenciales</h1>
-        <p id="bulkIssueHeaderText">Emita credenciales para varios contadores mediante un archivo CSV.</p>
+        <h1 class="h3 fw-bold text-dark mb-1">Emisión masiva de credenciales</h1>
+        <p class="text-muted mb-0">Emita credenciales para varios contadores mediante un archivo CSV.</p>
       </div>
-      <div class="header-actions">
-        <button type="button" class="btn btn-outline-secondary" (click)="cerrarEmisionMasiva()">← Volver</button>
+      <button type="button" class="btn btn-outline-secondary" (click)="cerrarEmisionMasiva()">
+        <span class="fa fa-arrow-left me-1"></span> Volver
+      </button>
+    </div>
+
+    <div class="card shadow-sm border-0 mb-4 col-lg-8 mx-auto">
+      <div class="card-header bg-white py-3 border-bottom">
+        <h5 class="card-title fw-bold mb-0 text-dark">
+          <span class="fa fa-upload text-primary me-2"></span> Carga masiva por archivo CSV
+        </h5>
       </div>
-    </header>
+      <div class="card-body p-4">
+        <ol class="text-muted small mb-4">
+          <li class="mb-2">Descargue la plantilla y complete la columna <code>numero_identificacion</code> por fila.</li>
+          <li>Suba el archivo: el sistema consultará las matrículas y emitirá las credenciales automáticamente.</li>
+        </ol>
 
-    <div class="individual-issue-content">
-      <section class="card individual-issue-card">
-        <div class="individual-issue-card-header">Carga masiva por archivo CSV</div>
-        <div class="individual-issue-card-body">
-          <ol class="bulk-issue-steps">
-            <li id="bulkIssueTemplateHelp">Descargue la plantilla y complete <code>numero_identificacion</code> por fila.</li>
-            <li id="bulkIssueProcessHelp">Suba el archivo: el sistema consulta el registro de matrícula, emite cada credencial y notifica al titular. Los duplicados se omiten y los errores se listan.</li>
-          </ol>
+        <div class="mb-4">
+          <button type="button" class="btn btn-outline-secondary btn-sm" (click)="descargarPlantillaCSV()">
+            <span class="fa fa-download me-1"></span> Descargar plantilla CSV
+          </button>
+        </div>
 
-          <button type="button" class="btn btn-outline-secondary btn-sm" id="bulkIssueDownload" (click)="descargarPlantillaCSV()">↓ Descargar plantilla</button>
-
-          <div class="bulk-issue-actions" style="margin-top:14px">
-            <input type="file" id="bulkIssueFile" accept=".csv,.txt,text/csv,text/plain" class="control bulk-file-control" (change)="seleccionarArchivo($event)">
-            <button type="button" class="btn btn-primary btn-sm" id="bulkIssueProcess" (click)="procesarEmisionMasiva()">↑ Procesar</button>
-          </div>
-
-          <div id="bulkIssueResult" [class]="bulkResultClass" style="margin-top: 15px;">
-            {{ bulkResultText }}
+        <div class="mb-3">
+          <label for="bulkIssueFile" class="form-label fw-semibold">Seleccionar archivo CSV</label>
+          <div class="input-group">
+            <input type="file" id="bulkIssueFile" accept=".csv,.txt,text/csv,text/plain" class="form-control" (change)="seleccionarArchivo($event)">
+            <button type="button" class="btn btn-primary" (click)="procesarEmisionMasiva()">
+              <span class="fa fa-upload me-1"></span> Procesar
+            </button>
           </div>
         </div>
-      </section>
+
+        <div *ngIf="bulkResultText" class="alert alert-info mt-3 mb-0">
+          {{ bulkResultText }}
+        </div>
+      </div>
     </div>
   </ng-container>
 
   <!-- VISTA HISTORIAL DE TARJETA -->
   <ng-container *ngIf="vistaActiva === 'historial' && selectedTarjeta">
-    <header class="page-header">
+    <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
       <div>
-        <h1>Historial de tarjeta</h1>
-        <p id="cardHistorySubtitle">Estados y verificaciones públicas de la credencial {{ selectedTarjeta.codigo }}.</p>
+        <h1 class="h3 fw-bold text-dark mb-1">Historial de tarjeta</h1>
+        <p class="text-muted mb-0">Estados y verificaciones de la credencial {{ selectedTarjeta.codigo }}.</p>
       </div>
-      <div class="header-actions">
-        <button type="button" class="btn btn-outline-secondary" (click)="cerrarHistorial()">← Volver</button>
-      </div>
-    </header>
+      <button type="button" class="btn btn-outline-secondary" (click)="cerrarHistorial()">
+        <span class="fa fa-arrow-left me-1"></span> Volver
+      </button>
+    </div>
 
-    <div class="card-history-content">
-      <section class="card">
-        <div class="card-history-person">
-          <div class="card-history-avatar">👤</div>
-          <div>
-            <h3>{{ selectedTarjeta.solicitante }}</h3>
-            <div class="card-history-meta">
-              <span><strong>DOCUMENTO:</strong> {{ selectedTarjeta.documento }}</span>
-              <span><strong>TARJETA PROFESIONAL:</strong> {{ selectedTarjeta.matricula }}</span>
-              <span><strong>EXPEDIENTE:</strong> {{ selectedTarjeta.expediente }}</span>
-              <span><strong>CÓDIGO:</strong> {{ selectedTarjeta.codigo }}</span>
-              <span><strong>CORREO:</strong> {{ selectedTarjeta.correo || 'No registrado' }}</span>
-              <span><strong>FECHA:</strong> {{ selectedTarjeta.fecha }}</span>
-              <span><strong>ESTADO:</strong> <span class="badge" [ngClass]="{
-                'success': selectedTarjeta.tarjeta === 'Activa',
-                'warning': selectedTarjeta.tarjeta === 'Emitida' || selectedTarjeta.tarjeta === 'Pendiente',
-                'danger': selectedTarjeta.tarjeta === 'Cancelada' || selectedTarjeta.tarjeta === 'Suspendida'
-              }">{{ selectedTarjeta.tarjeta }}</span></span>
-            </div>
+    <div class="card shadow-sm border-0 mb-4">
+      <div class="card-body p-4 d-flex align-items-center gap-4 flex-wrap">
+        <div class="p-3 bg-primary text-white rounded-circle fs-2"><span class="fa fa-user"></span></div>
+        <div class="flex-grow-1">
+          <h4 class="fw-bold text-dark mb-1">{{ selectedTarjeta.solicitante }}</h4>
+          <div class="row g-2 text-muted small mt-2">
+            <div class="col-md-3"><span>DOCUMENTO:</span> <strong>{{ selectedTarjeta.documento }}</strong></div>
+            <div class="col-md-3"><span>T. PROFESIONAL:</span> <strong>{{ selectedTarjeta.matricula }}</strong></div>
+            <div class="col-md-3"><span>EXPEDIENTE:</span> <strong>{{ selectedTarjeta.expediente }}</strong></div>
+            <div class="col-md-3"><span>ESTADO:</span> <span class="badge bg-success">{{ selectedTarjeta.tarjeta }}</span></div>
           </div>
         </div>
-      </section>
+      </div>
+    </div>
 
-      <div class="card-history-sections">
-        <section class="credential-history-card">
-          <h4>Historial de estado</h4>
-          <ul class="credential-timeline" *ngIf="selectedTarjetaHistorial && selectedTarjetaHistorial.estados.length > 0">
-            <li *ngFor="let estado of selectedTarjetaHistorial.estados">
-              <strong>{{ estado.estado }}</strong>
-              <span>{{ estado.fecha }} — {{ estado.descripcion }} <span style="font-style: italic; opacity: 0.85;">(Por: {{ estado.realizado_por }})</span></span>
-            </li>
-          </ul>
-          <div *ngIf="!selectedTarjetaHistorial" style="font-size: 10px; color: var(--muted); padding: 12px;">Cargando historial...</div>
-          <div *ngIf="selectedTarjetaHistorial && selectedTarjetaHistorial.estados.length === 0" style="font-size: 10px; color: var(--muted); padding: 12px;">No hay registro de estados.</div>
-        </section>
+    <div class="row g-4">
+      <div class="col-md-6">
+        <div class="card shadow-sm border-0 h-100">
+          <div class="card-header bg-white py-3 border-bottom fw-bold">
+            <span class="fa fa-history text-primary me-2"></span> Historial de estados
+          </div>
+          <div class="card-body">
+            <ul class="list-group list-group-flush" *ngIf="selectedTarjetaHistorial && selectedTarjetaHistorial.estados.length > 0">
+              <li class="list-group-item px-0" *ngFor="let estado of selectedTarjetaHistorial.estados">
+                <div class="d-flex justify-content-between">
+                  <strong class="text-dark">{{ estado.estado }}</strong>
+                  <small class="text-muted">{{ estado.fecha }}</small>
+                </div>
+                <p class="text-muted small mb-0">{{ estado.descripcion }} <em class="opacity-75">({{ estado.realizado_por }})</em></p>
+              </li>
+            </ul>
+            <div *ngIf="!selectedTarjetaHistorial" class="text-muted small py-3">Cargando historial...</div>
+          </div>
+        </div>
+      </div>
 
-        <section class="credential-history-card">
-          <h4>Historial de lecturas del QR</h4>
-          <ul class="credential-readings" *ngIf="selectedTarjetaHistorial && selectedTarjetaHistorial.lecturas.length > 0">
-            <li *ngFor="let lectura of selectedTarjetaHistorial.lecturas">
-              <strong>Verificación pública exitosa</strong>
-              <span>{{ lectura.fecha }} — {{ lectura.ip }} ({{ lectura.endpoint }})</span>
-            </li>
-          </ul>
-          <div *ngIf="!selectedTarjetaHistorial" style="font-size: 10px; color: var(--muted); padding: 12px;">Cargando lecturas...</div>
-          <div *ngIf="selectedTarjetaHistorial && selectedTarjetaHistorial.lecturas.length === 0" style="font-size: 10px; color: var(--muted); padding: 12px;">La credencial no registra lecturas QR.</div>
-        </section>
+      <div class="col-md-6">
+        <div class="card shadow-sm border-0 h-100">
+          <div class="card-header bg-white py-3 border-bottom fw-bold">
+            <span class="fa fa-qrcode text-primary me-2"></span> Historial de lecturas QR
+          </div>
+          <div class="card-body">
+            <ul class="list-group list-group-flush" *ngIf="selectedTarjetaHistorial && selectedTarjetaHistorial.lecturas.length > 0">
+              <li class="list-group-item px-0" *ngFor="let lectura of selectedTarjetaHistorial.lecturas">
+                <div class="d-flex justify-content-between">
+                  <strong class="text-success"><span class="fa fa-check me-1"></span> Verificación exitosa</strong>
+                  <small class="text-muted">{{ lectura.fecha }}</small>
+                </div>
+                <p class="text-muted small mb-0">{{ lectura.ip }} ({{ lectura.endpoint }})</p>
+              </li>
+            </ul>
+            <div *ngIf="!selectedTarjetaHistorial" class="text-muted small py-3">Cargando lecturas...</div>
+          </div>
+        </div>
       </div>
     </div>
   </ng-container>
 
-
-<!-- Modal de Detalle -->
-<div class="modal-backdrop" [ngClass]="{'open': isDetailModalOpen}" *ngIf="isDetailModalOpen && selectedTarjeta" (click)="cerrarDetalle()">
-  <div class="modal" (click)="$event.stopPropagation()">
-    <div class="modal-header">
-      <div>
-        <h3>Detalle de Solicitud</h3>
-        <p>Código: {{ selectedTarjeta.codigo }}</p>
+<!-- Modal de Detalle (Bootstrap 5.3) -->
+<div class="modal fade show d-block" tabindex="-1" *ngIf="isDetailModalOpen && selectedTarjeta" role="dialog" aria-modal="true">
+  <div class="modal-dialog modal-dialog-centered modal-lg">
+    <div class="modal-content shadow border-0">
+      <div class="modal-header bg-light border-bottom">
+        <div>
+          <h5 class="modal-title fw-bold text-dark">Detalle de Solicitud</h5>
+          <small class="text-muted">Código: {{ selectedTarjeta.codigo }}</small>
+        </div>
+        <button type="button" class="btn-close" (click)="cerrarDetalle()" aria-label="Cerrar"></button>
       </div>
-      <button class="close-btn" (click)="cerrarDetalle()">×</button>
-    </div>
-    <div class="modal-body">
-      <div class="detail-grid">
-        <div class="detail-item">
-          <label>Expediente</label>
-          <strong>{{ selectedTarjeta.expediente }}</strong>
-        </div>
-        <div class="detail-item">
-          <label>Solicitante</label>
-          <strong>{{ selectedTarjeta.solicitante }}</strong>
-        </div>
-        <div class="detail-item">
-          <label>Documento</label>
-          <strong>{{ selectedTarjeta.documento }}</strong>
-        </div>
-        <div class="detail-item">
-          <label>Tarjeta Profesional</label>
-          <strong>{{ selectedTarjeta.matricula }}</strong>
-        </div>
-        <div class="detail-item">
-          <label>Correo Electrónico</label>
-          <strong>{{ selectedTarjeta.correo }}</strong>
-        </div>
-        <div class="detail-item">
-          <label>Estado de Tarjeta</label>
-          <span class="badge success">{{ selectedTarjeta.tarjeta }}</span>
-        </div>
-        <div class="detail-item">
-          <label>Fecha de Emisión</label>
-          <strong>{{ selectedTarjeta.fecha }}</strong>
+      <div class="modal-body p-4">
+        <div class="row g-3">
+          <div class="col-md-6">
+            <label class="form-label text-muted small fw-bold text-uppercase mb-1">Expediente</label>
+            <div class="fw-semibold text-dark">{{ selectedTarjeta.expediente }}</div>
+          </div>
+          <div class="col-md-6">
+            <label class="form-label text-muted small fw-bold text-uppercase mb-1">Solicitante</label>
+            <div class="fw-bold text-dark fs-6">{{ selectedTarjeta.solicitante }}</div>
+          </div>
+          <div class="col-md-6">
+            <label class="form-label text-muted small fw-bold text-uppercase mb-1">Documento</label>
+            <div class="fw-semibold text-dark">{{ selectedTarjeta.documento }}</div>
+          </div>
+          <div class="col-md-6">
+            <label class="form-label text-muted small fw-bold text-uppercase mb-1">Tarjeta Profesional</label>
+            <div class="fw-semibold text-dark">{{ selectedTarjeta.matricula }}</div>
+          </div>
+          <div class="col-md-6">
+            <label class="form-label text-muted small fw-bold text-uppercase mb-1">Correo Electrónico</label>
+            <div class="fw-semibold text-dark">{{ selectedTarjeta.correo }}</div>
+          </div>
+          <div class="col-md-6">
+            <label class="form-label text-muted small fw-bold text-uppercase mb-1">Estado</label>
+            <div><span class="badge bg-success">{{ selectedTarjeta.tarjeta }}</span></div>
+          </div>
+          <div class="col-md-6">
+            <label class="form-label text-muted small fw-bold text-uppercase mb-1">Fecha de Emisión</label>
+            <div class="fw-semibold text-dark">{{ selectedTarjeta.fecha }}</div>
+          </div>
         </div>
       </div>
-    </div>
-    <div class="modal-footer">
-      <button class="btn btn-outline-secondary" (click)="cerrarDetalle()">Cerrar</button>
+      <div class="modal-footer bg-light border-top">
+        <button class="btn btn-secondary" (click)="cerrarDetalle()">Cerrar</button>
+      </div>
     </div>
   </div>
 </div>
 
-<!-- Modal de Tarjeta Profesional Digital (Premium Aesthetic) -->
-<div class="modal-backdrop" [ngClass]="{'open': isCardModalOpen}" *ngIf="isCardModalOpen && selectedTarjeta" (click)="cerrarTarjeta()">
-  <div class="modal card-modal" (click)="$event.stopPropagation()">
-    <div class="modal-header">
-      <h3>Visualización de Tarjeta Profesional</h3>
-      <button class="close-btn" (click)="cerrarTarjeta()">×</button>
-    </div>
-    
-    <div class="modal-body card-render-container" style="display:flex; justify-content:center; align-items:center; padding: 25px 0;">
-      <!-- Credencial Digital Premium -->
-      <div class="virtual-card">
-        <div class="virtual-card-front">
-          <div class="card-glow"></div>
-          <div class="card-front-header">
-            <div class="card-logo-area">
-              <span class="card-emblem">🇨🇴</span>
+<!-- Modal de Tarjeta Profesional Digital (Bootstrap 5.3) -->
+<div class="modal fade show d-block" tabindex="-1" *ngIf="isCardModalOpen && selectedTarjeta" role="dialog" aria-modal="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content shadow border-0">
+      <div class="modal-header bg-light border-bottom">
+        <h5 class="modal-title fw-bold text-dark">Visualización de Tarjeta Profesional</h5>
+        <button type="button" class="btn-close" (click)="cerrarTarjeta()" aria-label="Cerrar"></button>
+      </div>
+      
+      <div class="modal-body p-4 d-flex justify-content-center">
+        <!-- Credencial Digital Premium estilizada -->
+        <div class="card border-0 shadow-lg text-white p-4 rounded-4" style="width: 350px; background: linear-gradient(135deg, #174a7e 0%, #0d3158 100%);">
+          <div class="d-flex justify-content-between align-items-center border-bottom border-white border-opacity-25 pb-2 mb-3">
+            <div class="d-flex align-items-center gap-2">
+              <span class="fs-4">🇨🇴</span>
               <div>
-                <h2>JUNTA CENTRAL</h2>
-                <h3>DE CONTADORES</h3>
+                <div class="fw-bold small lh-1">JUNTA CENTRAL</div>
+                <div class="small text-white-50" style="font-size: 9px;">DE CONTADORES</div>
               </div>
             </div>
-            <div class="card-type-tag">CONTADOR PÚBLICO</div>
+            <span class="badge bg-white text-primary" style="font-size: 9px;">CONTADOR PÚBLICO</span>
           </div>
-          
-          <div class="card-front-body">
-            <div class="card-photo-box">
-              <div class="card-photo-avatar">👤</div>
-            </div>
-            
-            <div class="card-info-box">
-              <div class="card-holder-name">{{ selectedTarjeta.solicitante }}</div>
-              <div class="card-holder-meta">
-                <div>
-                  <small>DOCUMENTO</small>
-                  <strong>{{ selectedTarjeta.documento }}</strong>
-                </div>
-                <div>
-                  <small>TARJETA PROFESIONAL</small>
-                  <strong>{{ selectedTarjeta.matricula }}</strong>
-                </div>
-              </div>
-            </div>
 
-            <!-- Código QR Simulado -->
-            <div class="card-qr-box">
-              <div class="qr-matrix-grid">
-                <div *ngFor="let row of [].constructor(15); let r = index" class="qr-row">
-                  <div *ngFor="let col of [].constructor(15); let c = index" 
-                       class="qr-dot" 
-                       [ngClass]="{'black': getQrDot(r, c)}">
-                  </div>
-                </div>
-              </div>
+          <div class="d-flex gap-3 align-items-center mb-3">
+            <div class="p-3 bg-white bg-opacity-10 rounded-3 fs-1 text-center" style="width: 70px; height: 70px;">
+              <span class="fa fa-user"></span>
+            </div>
+            <div>
+              <div class="fw-bold fs-6">{{ selectedTarjeta.solicitante }}</div>
+              <div class="small text-white-50 mt-1">CC: {{ selectedTarjeta.documento }}</div>
+              <div class="small text-warning">TP: {{ selectedTarjeta.matricula }}</div>
             </div>
           </div>
-          
-          <div class="card-front-footer">
+
+          <div class="d-flex justify-content-between align-items-center border-top border-white border-opacity-25 pt-2 small text-white-50">
             <span>República de Colombia</span>
-            <span>VIGENTE</span>
+            <span class="badge bg-success">VIGENTE</span>
           </div>
         </div>
       </div>
-    </div>
-    
-    <div class="modal-footer">
-      <button class="btn btn-outline-secondary" (click)="cerrarTarjeta()">Cerrar</button>
+      
+      <div class="modal-footer bg-light border-top">
+        <button class="btn btn-secondary" (click)="cerrarTarjeta()">Cerrar</button>
+      </div>
     </div>
   </div>
 </div>

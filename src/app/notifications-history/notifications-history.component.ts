@@ -1,4 +1,4 @@
-import { Component, OnInit, inject, ChangeDetectorRef } from '@angular/core';
+import { Component, OnInit, OnDestroy, AfterViewInit, inject, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { HttpClient } from '@angular/common/http';
@@ -27,7 +27,7 @@ interface NotificationItem {
   templateUrl: './notifications-history.component.html',
   styleUrl: './notifications-history.component.css'
 })
-export class NotificationsHistoryComponent implements OnInit {
+export class NotificationsHistoryComponent implements OnInit, OnDestroy, AfterViewInit {
   private http = inject(HttpClient);
   private router = inject(Router);
   private cdr = inject(ChangeDetectorRef);
@@ -36,29 +36,8 @@ export class NotificationsHistoryComponent implements OnInit {
 
   notificaciones: NotificationItem[] = [];
   currentError: AppError | null = null;
-
-  irACrearNotificacion(): void {
-    this.router.navigate(['/crear-notificacion']);
-  }
-
-  ngOnInit(): void {
-    this.cargarNotificaciones();
-  }
-
-  cargarNotificaciones(): void {
-    this.currentError = null;
-    this.http.get<NotificationItem[]>(`${API_BASE}/notificaciones/list?client_id=${this.clientId}`)
-      .subscribe({
-        next: (data) => {
-          this.notificaciones = data;
-          this.cdr.detectChanges(); // Forzar el renderizado en entornos sin Zone.js (Zoneless)
-        },
-        error: (err) => {
-          console.error('Error al cargar notificaciones de la API:', err);
-          this.currentError = this.errorHandler.parseError(err, 'MS_3820_NOTIFICACIONES_GET', `${API_BASE}/notificaciones/list`);
-        }
-      });
-  }
+  private dtInstance: any = null;
+  private customFilterFn: any = null;
 
   // Filtros
   searchQuery: string = '';
@@ -70,6 +49,179 @@ export class NotificationsHistoryComponent implements OnInit {
   // Detalle de Notificación (Modal)
   selectedNotification: NotificationItem | null = null;
   isModalOpen: boolean = false;
+
+  irACrearNotificacion(): void {
+    this.router.navigate(['/crear-notificacion']);
+  }
+
+  ngOnInit(): void {
+    this.cargarNotificaciones();
+  }
+
+  ngAfterViewInit(): void {
+    this.ensureDataTablesLoaded();
+  }
+
+  ngOnDestroy(): void {
+    this.destroyDataTable();
+    if (this.customFilterFn && (window as any).DataTable?.ext?.search) {
+      const idx = (window as any).DataTable.ext.search.indexOf(this.customFilterFn);
+      if (idx !== -1) {
+        (window as any).DataTable.ext.search.splice(idx, 1);
+      }
+    }
+  }
+
+  private ensureDataTablesLoaded(): Promise<void> {
+    if ((window as any).DataTable) {
+      return Promise.resolve();
+    }
+    return new Promise((resolve) => {
+      if (document.querySelector('script[src*="datatables.net/2.3.1/js/dataTables.min.js"]')) {
+        const timer = setInterval(() => {
+          if ((window as any).DataTable) {
+            clearInterval(timer);
+            resolve();
+          }
+        }, 50);
+        return;
+      }
+      const jqScript = document.createElement('script');
+      jqScript.src = 'https://code.jquery.com/jquery-3.7.1.min.js';
+      jqScript.onload = () => {
+        const dtScript = document.createElement('script');
+        dtScript.src = 'https://cdn.datatables.net/2.3.1/js/dataTables.min.js';
+        dtScript.onload = () => {
+          const dtBs5Script = document.createElement('script');
+          dtBs5Script.src = 'https://cdn.datatables.net/2.3.1/js/dataTables.bootstrap5.min.js';
+          dtBs5Script.onload = () => resolve();
+          document.head.appendChild(dtBs5Script);
+        };
+        document.head.appendChild(dtScript);
+      };
+      document.head.appendChild(jqScript);
+    });
+  }
+
+  private destroyDataTable(): void {
+    if (this.dtInstance) {
+      try {
+        this.dtInstance.destroy();
+      } catch (e) {}
+      this.dtInstance = null;
+    }
+  }
+
+  initDataTable(): void {
+    this.ensureDataTablesLoaded().then(() => {
+      setTimeout(() => {
+        const tableEl = document.getElementById('tablaHistorial');
+        if (!tableEl) return;
+        this.destroyDataTable();
+
+        const dtConstructor = (window as any).DataTable;
+        if (typeof dtConstructor === 'function') {
+          // Registrar filtro personalizado conectado con la barra de filtros robusta
+          if (!this.customFilterFn && dtConstructor.ext?.search) {
+            this.customFilterFn = (settings: any, data: any, dataIndex: number) => {
+              if (settings.nTable.id !== 'tablaHistorial') return true;
+              const item = this.notificaciones[dataIndex];
+              if (!item) return true;
+
+              // Búsqueda por texto (título, creador, audiencia)
+              if (this.searchQuery) {
+                const q = this.searchQuery.toLowerCase();
+                const match = (item.titulo && item.titulo.toLowerCase().includes(q)) ||
+                              (item.creadoPor && item.creadoPor.toLowerCase().includes(q)) ||
+                              (item.audiencia && item.audiencia.toLowerCase().includes(q));
+                if (!match) return false;
+              }
+
+              // Filtro por canal
+              if (this.selectedChannel && item.canal !== this.selectedChannel) {
+                return false;
+              }
+
+              // Filtro por estado
+              if (this.selectedStatus && item.estado !== this.selectedStatus) {
+                return false;
+              }
+
+              // Filtro por fecha desde / hasta
+              if (this.dateFrom || this.dateTo) {
+                const nDateStr = item.fecha ? item.fecha.substring(0, 10) : '';
+                if (this.dateFrom && (!nDateStr || nDateStr < this.dateFrom)) return false;
+                if (this.dateTo && (!nDateStr || nDateStr > this.dateTo)) return false;
+              }
+
+              return true;
+            };
+            dtConstructor.ext.search.push(this.customFilterFn);
+          }
+
+          this.dtInstance = new dtConstructor('#tablaHistorial', {
+            pageLength: 10,
+            responsive: true,
+            order: [[5, 'desc']], // Ordenar por fecha y hora descendente por defecto
+            language: {
+              search: "",
+              lengthMenu: "Mostrar _MENU_ registros",
+              info: "Mostrando _START_ a _END_ de _TOTAL_ registros",
+              infoEmpty: "Mostrando 0 a 0 de 0 registros",
+              infoFiltered: "(filtrado de _MAX_ registros totales)",
+              zeroRecords: "No se encontraron notificaciones con los filtros seleccionados",
+              paginate: {
+                first: "««",
+                last: "»»",
+                next: "»",
+                previous: "«"
+              }
+            },
+            layout: {
+              topStart: null, // Ocultar el buscador propio de DataTables para usar el buscador robusto
+              topEnd: 'pageLength',
+              bottomStart: 'info',
+              bottomEnd: 'paging'
+            }
+          });
+        }
+      }, 50);
+    });
+  }
+
+  cargarNotificaciones(): void {
+    this.currentError = null;
+    this.http.get<NotificationItem[]>(`${API_BASE}/notificaciones/list?client_id=${this.clientId}`)
+      .subscribe({
+        next: (data) => {
+          this.notificaciones = data;
+          this.cdr.detectChanges();
+          this.initDataTable();
+        },
+        error: (err) => {
+          console.error('Error al cargar notificaciones de la API:', err);
+          this.currentError = this.errorHandler.parseError(err, 'MS_3820_NOTIFICACIONES_GET', `${API_BASE}/notificaciones/list`);
+        }
+      });
+  }
+
+  onFilterChange(): void {
+    if (this.dtInstance) {
+      this.dtInstance.draw();
+    }
+  }
+
+  limpiarFiltros(): void {
+    this.searchQuery = '';
+    this.selectedChannel = '';
+    this.selectedStatus = '';
+    this.dateFrom = '';
+    this.dateTo = '';
+    if (this.dtInstance) {
+      this.dtInstance.draw();
+    }
+    this.cdr.detectChanges();
+  }
 
   // Estadísticas calculadas de manera global
   get totalCount(): number {
@@ -88,7 +240,6 @@ export class NotificationsHistoryComponent implements OnInit {
     return this.notificaciones.filter(n => n.estado === 'Fallida').length;
   }
 
-  // Filtrado reactivo en tiempo real con blindaje contra valores nulos
   get filteredNotifications(): NotificationItem[] {
     return this.notificaciones.filter(n => {
       const matchSearch = !this.searchQuery ||
@@ -99,7 +250,6 @@ export class NotificationsHistoryComponent implements OnInit {
       const matchChannel = !this.selectedChannel || n.canal === this.selectedChannel;
       const matchStatus = !this.selectedStatus || n.estado === this.selectedStatus;
 
-      // Filtrado por fecha seguro
       let matchDate = true;
       if (this.dateFrom || this.dateTo) {
         const nDateStr = n.fecha ? n.fecha.substring(0, 10) : '';
@@ -111,14 +261,6 @@ export class NotificationsHistoryComponent implements OnInit {
     });
   }
 
-  limpiarFiltros(): void {
-    this.searchQuery = '';
-    this.selectedChannel = '';
-    this.selectedStatus = '';
-    this.dateFrom = '';
-    this.dateTo = '';
-  }
-
   verDetalle(notificacion: NotificationItem): void {
     this.selectedNotification = notificacion;
     this.isModalOpen = true;
@@ -127,5 +269,31 @@ export class NotificationsHistoryComponent implements OnInit {
   cerrarModal(): void {
     this.isModalOpen = false;
     this.selectedNotification = null;
+  }
+
+  exportarCSV(): void {
+    if (!this.filteredNotifications || this.filteredNotifications.length === 0) {
+      alert('No hay registros para exportar');
+      return;
+    }
+    const headers = ['ID', 'Título', 'Canal', 'Audiencia', 'Destinatarios', 'Fecha', 'Estado', 'Creado Por'];
+    const rows = this.filteredNotifications.map((n: NotificationItem) => [
+      n.id,
+      `"${(n.titulo || '').replace(/"/g, '""')}"`,
+      `"${n.canal}"`,
+      `"${n.audiencia}"`,
+      n.destinatarios,
+      `"${n.fecha}"`,
+      `"${n.estado}"`,
+      `"${n.creadoPor}"`
+    ]);
+    const csvContent = 'data:text/csv;charset=utf-8,\uFEFF' + [headers.join(','), ...rows.map((e: any[]) => e.join(','))].join('\n');
+    const encodedUri = encodeURI(csvContent);
+    const link = document.createElement('a');
+    link.setAttribute('href', encodedUri);
+    link.setAttribute('download', `historial_notificaciones_${new Date().toISOString().slice(0,10)}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
   }
 }
