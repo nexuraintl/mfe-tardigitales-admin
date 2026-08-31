@@ -1,4 +1,4 @@
-import { Component, OnInit, inject, ChangeDetectorRef, HostListener } from '@angular/core';
+import { Component, OnInit, OnDestroy, AfterViewInit, inject, ChangeDetectorRef, HostListener } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { HttpClient } from '@angular/common/http';
@@ -28,7 +28,7 @@ interface TarjetaSociedad {
   templateUrl: './tarjetas-sociedades.component.html',
   styleUrl: './tarjetas-sociedades.component.css'
 })
-export class TarjetasSociedadesComponent implements OnInit {
+export class TarjetasSociedadesComponent implements OnInit, OnDestroy, AfterViewInit {
   private http = inject(HttpClient);
   private cdr = inject(ChangeDetectorRef);
   private errorHandler = inject(ErrorHandlerService);
@@ -37,6 +37,7 @@ export class TarjetasSociedadesComponent implements OnInit {
   tarjetas: TarjetaSociedad[] = [];
   loading: boolean = false;
   currentError: AppError | null = null;
+  private dtInstance: any = null;
 
   // Filtros y Buscador
   searchQuery: string = '';
@@ -74,6 +75,111 @@ export class TarjetasSociedadesComponent implements OnInit {
     this.cargarTarjetas();
   }
 
+  ngAfterViewInit(): void {
+    this.ensureDataTablesLoaded();
+  }
+
+  ngOnDestroy(): void {
+    this.destroyDataTable();
+  }
+
+  private ensureDataTablesLoaded(): Promise<void> {
+    if ((window as any).DataTable) {
+      return Promise.resolve();
+    }
+    return new Promise((resolve) => {
+      if (document.querySelector('script[src*="datatables.net/2.3.1/js/dataTables.min.js"]')) {
+        const timer = setInterval(() => {
+          if ((window as any).DataTable) {
+            clearInterval(timer);
+            resolve();
+          }
+        }, 50);
+        return;
+      }
+      const jqScript = document.createElement('script');
+      jqScript.src = 'https://code.jquery.com/jquery-3.7.1.min.js';
+      jqScript.onload = () => {
+        const dtScript = document.createElement('script');
+        dtScript.src = 'https://cdn.datatables.net/2.3.1/js/dataTables.min.js';
+        dtScript.onload = () => {
+          const dtBs5Script = document.createElement('script');
+          dtBs5Script.src = 'https://cdn.datatables.net/2.3.1/js/dataTables.bootstrap5.min.js';
+          dtBs5Script.onload = () => resolve();
+          document.head.appendChild(dtBs5Script);
+        };
+        document.head.appendChild(dtScript);
+      };
+      document.head.appendChild(jqScript);
+    });
+  }
+
+  private destroyDataTable(): void {
+    if (this.dtInstance) {
+      try {
+        this.dtInstance.destroy();
+      } catch (e) {}
+      this.dtInstance = null;
+    }
+  }
+
+  initDataTable(): void {
+    if (this.vistaActiva !== 'listado') return;
+    this.ensureDataTablesLoaded().then(() => {
+      setTimeout(() => {
+        const tableEl = document.getElementById('tablaSociedades');
+        if (!tableEl) return;
+        this.destroyDataTable();
+
+        const dtConstructor = (window as any).DataTable;
+        if (typeof dtConstructor === 'function') {
+          this.dtInstance = new dtConstructor('#tablaSociedades', {
+            pageLength: 10,
+            responsive: true,
+            order: [[0, 'asc']],
+            language: {
+              search: "",
+              searchPlaceholder: "Escriba para filtrar...",
+              lengthMenu: "Mostrar _MENU_ registros",
+              info: "Mostrando _START_ a _END_ de _TOTAL_ registros",
+              infoEmpty: "Mostrando 0 a 0 de 0 registros",
+              infoFiltered: "(filtrado de _MAX_ registros totales)",
+              zeroRecords: "No se encontraron sociedades registradas",
+              paginate: {
+                first: "««",
+                last: "»»",
+                next: "»",
+                previous: "«"
+              }
+            },
+            layout: {
+              topStart: 'search',
+              topEnd: 'pageLength',
+              bottomStart: 'info',
+              bottomEnd: 'paging'
+            }
+          });
+
+          // Agregar botón Buscar al lado del input de búsqueda
+          const searchContainer = tableEl.closest('.dt-container')?.querySelector('.dt-search');
+          if (searchContainer && !searchContainer.querySelector('.btn-dt-search')) {
+            const btn = document.createElement('button');
+            btn.type = 'button';
+            btn.className = 'btn btn-outline-primary btn-sm btn-dt-search ms-2';
+            btn.innerHTML = '<span class="fa fa-search me-1"></span> Buscar';
+            btn.onclick = () => {
+              const input = searchContainer.querySelector('input') as HTMLInputElement;
+              if (input && this.dtInstance) {
+                this.dtInstance.search(input.value).draw();
+              }
+            };
+            searchContainer.appendChild(btn);
+          }
+        }
+      }, 50);
+    });
+  }
+
   cargarTarjetas(): void {
     this.loading = true;
     this.currentError = null;
@@ -83,6 +189,7 @@ export class TarjetasSociedadesComponent implements OnInit {
           this.tarjetas = data;
           this.loading = false;
           this.cdr.detectChanges();
+          this.initDataTable();
         },
         error: (err) => {
           console.error('Error al cargar tarjetas de sociedades:', err);
@@ -171,6 +278,14 @@ export class TarjetasSociedadesComponent implements OnInit {
   // Simulador de matriz QR en base a un Seed
   getQrDot(x: number, y: number): boolean {
     return ((x * 17 + this.qrSeed * 13 + x * y * 5) % 11) < 5;
+  }
+
+  volver(): void {
+    if (this.vistaActiva !== 'listado') {
+      this.vistaActiva = 'listado';
+    } else if (typeof window !== 'undefined' && window.history.length > 1) {
+      window.history.back();
+    }
   }
 
   // Métodos para Emisión Individual (Nueva tarjeta de sociedad)
@@ -397,5 +512,30 @@ export class TarjetasSociedadesComponent implements OnInit {
     this.vistaActiva = 'listado';
     this.selectedTarjeta = null;
     this.selectedTarjetaHistorial = null;
+  }
+
+  exportarCSV(): void {
+    if (!this.filteredTarjetas || this.filteredTarjetas.length === 0) {
+      alert('No hay registros para exportar');
+      return;
+    }
+    const headers = ['Expediente', 'Razón Social', 'NIT', 'N.° Registro', 'Representante Legal', 'Estado', 'Fecha'];
+    const rows = this.filteredTarjetas.map(t => [
+      `"${t.expediente}"`,
+      `"${(t.solicitante || '').replace(/"/g, '""')}"`,
+      `"${t.documento}"`,
+      `"${t.matricula}"`,
+      `"${(t.representante || '').replace(/"/g, '""')}"`,
+      `"${t.tarjeta}"`,
+      `"${t.fecha}"`
+    ]);
+    const csvContent = 'data:text/csv;charset=utf-8,\uFEFF' + [headers.join(','), ...rows.map(e => e.join(','))].join('\n');
+    const encodedUri = encodeURI(csvContent);
+    const link = document.createElement('a');
+    link.setAttribute('href', encodedUri);
+    link.setAttribute('download', `tarjetas_sociedades_${new Date().toISOString().slice(0,10)}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
   }
 }
