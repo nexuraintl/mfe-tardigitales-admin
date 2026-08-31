@@ -62,6 +62,14 @@ async function buildMfe() {
     fs.writeFileSync(outputCssPath, concatenatedCss, 'utf8');
     console.log(`¡CSS unificado creado con éxito en: ${outputCssPath}!`);
 
+    // Copiar bundle independiente de Lit Layout si existe
+    const layoutSrc = path.join(__dirname, 'dist', 'nexura-layout', 'nx-admin-layout.js');
+    const layoutDest = path.join(destDir, 'nx-admin-layout.js');
+    if (fs.existsSync(layoutSrc)) {
+      fs.copyFileSync(layoutSrc, layoutDest);
+      console.log(`¡nx-admin-layout.js independiente copiado a: ${layoutDest}!`);
+    }
+
     // Generar index.html para uso independiente
     const indexHtmlContent = `<!doctype html>
 <html lang="es">
@@ -78,6 +86,8 @@ async function buildMfe() {
     <script src="https://cdn.datatables.net/2.3.1/js/dataTables.min.js"></script>
     <script src="https://cdn.datatables.net/2.3.1/js/dataTables.bootstrap5.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" defer></script>
+    <!-- Web Component de Layout Independiente compilado con Lit -->
+    <script src="nx-admin-layout.js"></script>
   </head>
   <body>
     <app-root></app-root>

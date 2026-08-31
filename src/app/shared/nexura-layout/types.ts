@@ -44,6 +44,6 @@ export interface PrimaryAction {
   label: string;
   icon?: string;
   path?: string;
-  action?: string;
+  action?: string | (() => void);
   color?: string;
 }
