@@ -1,0 +1,377 @@
+/* ==========================================================================
+   NEXURA PLATFORM - THEME & COMPONENT SYSTEM UNIFICADO (GLOBAL)
+   ========================================================================== */
+
+:root {
+  --nx-primary: #174a7e;
+  --nx-primary-hover: #123a63;
+  --nx-primary-soft: #eef5fb;
+  --nx-primary-border: #bad5ec;
+  --nx-bg: #f8f9fa;
+  --nx-card-bg: #ffffff;
+  --nx-text: #1e293b;
+  --nx-text-muted: #64748b;
+  --nx-border: #e2e8f0;
+  --nx-border-input: #dadce0;
+  --nx-radius: 8px;
+}
+
+body {
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, Helvetica Neue, Arial, sans-serif !important;
+  background-color: var(--nx-bg) !important;
+  color: var(--nx-text) !important;
+  margin: 0;
+  padding: 0;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Contenedor de Pagina y Sub-barra Estructural Unificada */
+.nx-page-wrapper {
+  padding: 16px 24px 36px 24px !important;
+  background-color: var(--nx-bg) !important;
+  min-height: calc(100vh - 64px);
+  box-sizing: border-box;
+}
+
+.nx-content-header {
+  display: flex !important;
+  justify-content: space-between !important;
+  align-items: center !important;
+  flex-wrap: wrap !important;
+  gap: 16px !important;
+  padding-bottom: 16px !important;
+  margin-bottom: 24px !important;
+  border-bottom: 1px solid #e8eaed !important;
+}
+
+.nx-content-header-left {
+  display: flex !important;
+  align-items: center !important;
+  gap: 14px !important;
+}
+
+.nx-view-title {
+  color: #1e293b !important;
+  font-size: 1.25rem !important;
+  font-weight: 700 !important;
+  margin: 0 !important;
+  line-height: 1.2 !important;
+  letter-spacing: -0.01em !important;
+}
+
+.nx-back-btn {
+  width: 36px !important;
+  height: 36px !important;
+  border-radius: 50% !important;
+  border: 1px solid #dadce0 !important;
+  background: #f1f3f4 !important;
+  color: #3c4043 !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  cursor: pointer !important;
+  transition: all 0.15s ease !important;
+  outline: none !important;
+  flex-shrink: 0 !important;
+  box-shadow: none !important;
+}
+
+.nx-back-btn:hover {
+  background: #e2e8f0 !important;
+  color: var(--nx-primary) !important;
+  border-color: #cbd5e1 !important;
+}
+
+.nx-back-btn i,
+.nx-back-btn span {
+  font-size: 14px !important;
+  color: inherit !important;
+}
+
+.nx-content-header-actions {
+  display: flex !important;
+  gap: 8px !important;
+  align-items: center !important;
+  flex-wrap: wrap !important;
+}
+
+/* Sistema de Botones Unificado Nexura */
+.btn {
+  font-family: inherit !important;
+  font-size: 13.5px !important;
+  font-weight: 600 !important;
+  border-radius: var(--nx-radius) !important;
+  padding: 8px 16px !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 6px !important;
+  line-height: 1.4 !important;
+  transition: all 0.15s ease !important;
+  box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05) !important;
+}
+
+.btn-primary {
+  background-color: var(--nx-primary) !important;
+  border-color: var(--nx-primary) !important;
+  color: #ffffff !important;
+}
+
+.btn-primary:hover,
+.btn-primary:focus {
+  background-color: var(--nx-primary-hover) !important;
+  border-color: var(--nx-primary-hover) !important;
+  color: #ffffff !important;
+  box-shadow: 0 2px 6px 0 rgba(23, 74, 126, 0.25) !important;
+}
+
+.btn-outline-secondary {
+  background-color: #ffffff !important;
+  border: 1px solid var(--nx-border-input) !important;
+  color: #3c4043 !important;
+}
+
+.btn-outline-secondary:hover,
+.btn-outline-secondary:focus {
+  background-color: #f8fafc !important;
+  border-color: #c4c7c5 !important;
+  color: #1e293b !important;
+}
+
+.btn-outline-primary {
+  background-color: #ffffff !important;
+  border: 1px solid var(--nx-primary) !important;
+  color: var(--nx-primary) !important;
+}
+
+.btn-outline-primary:hover,
+.btn-outline-primary:focus {
+  background-color: var(--nx-primary) !important;
+  border-color: var(--nx-primary) !important;
+  color: #ffffff !important;
+}
+
+.btn-sm {
+  padding: 5px 10px !important;
+  font-size: 12.5px !important;
+  border-radius: 6px !important;
+}
+
+/* Tarjetas (Cards) y Formularios */
+.card {
+  border-radius: var(--nx-radius) !important;
+  border: 1px solid var(--nx-border) !important;
+  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.05), 0 1px 2px 0 rgba(0, 0, 0, 0.03) !important;
+  background-color: var(--nx-card-bg) !important;
+}
+
+.card-header {
+  background-color: var(--nx-card-bg) !important;
+  border-bottom: 1px solid #e8eaed !important;
+  padding: 16px 20px !important;
+}
+
+.card-header .badge {
+  font-size: 0.875rem !important;
+  padding: 0.5rem 0.85rem !important;
+  font-weight: 600 !important;
+  border-radius: var(--nx-radius) !important;
+}
+
+.card-title {
+  color: #1e293b !important;
+}
+
+.card-title i,
+.card-title .fa,
+.card-title span.fa,
+.card-header h5 i,
+.card-header h5 .fa,
+.card-header h5 span.fa {
+  color: #5f6368 !important;
+}
+
+.form-control,
+.form-select {
+  border-radius: var(--nx-radius) !important;
+  border: 1px solid var(--nx-border-input) !important;
+  font-size: 13.5px !important;
+  padding: 8px 12px !important;
+  color: var(--nx-text) !important;
+}
+
+.form-control:focus,
+.form-select:focus {
+  border-color: var(--nx-primary) !important;
+  box-shadow: 0 0 0 2px rgba(23, 74, 126, 0.15) !important;
+}
+
+/* DataTables 2.3.1 - Estandarizado */
+div.dt-container {
+  font-family: inherit !important;
+}
+
+div.dt-container div.dt-layout-row {
+  margin: 0 !important;
+  padding: 14px 16px !important;
+  align-items: center !important;
+}
+
+div.dt-container div.dt-layout-row:first-child {
+  border-bottom: 1px solid #e8eaed !important;
+  display: flex !important;
+  justify-content: space-between !important;
+  align-items: center !important;
+  flex-wrap: wrap !important;
+  gap: 12px !important;
+}
+
+div.dt-container div.dt-layout-row:last-child {
+  border-top: 1px solid #e8eaed !important;
+  background-color: #ffffff !important;
+  display: flex !important;
+  justify-content: space-between !important;
+  align-items: center !important;
+  flex-wrap: wrap !important;
+  gap: 12px !important;
+}
+
+div.dt-container .dt-search {
+  display: inline-flex !important;
+  align-items: center !important;
+  position: relative !important;
+  margin: 0 !important;
+}
+
+div.dt-container .dt-search label {
+  display: none !important;
+}
+
+div.dt-container .dt-search input {
+  border: 1px solid var(--nx-border-input) !important;
+  border-radius: var(--nx-radius) !important;
+  padding: 7px 12px 7px 34px !important;
+  font-size: 13px !important;
+  color: #3c4043 !important;
+  min-width: 280px !important;
+  margin: 0 !important;
+  outline: none !important;
+  background-color: #ffffff !important;
+  background-image: url(data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' fill='%236c757d' viewBox='0 0 16 16'%3E%3Cpath d='M11.742 10.344a6.5 6.5 0 1 0-1.397 1.398h-.001c.03.04.062.078.098.115l3.85 3.85a1 1 0 0 0 1.415-1.414l-3.85-3.85a1.007 1.007 0 0 0-.115-.1zM12 6.5a5.5 5.5 0 1 1-11 0 5.5 5.5 0 0 1 11 0z'%3E%3C/path%3E%3C/svg%3E) !important;
+  background-repeat: no-repeat !important;
+  background-position: 10px center !important;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+div.dt-container .dt-search input:focus {
+  border-color: var(--nx-primary) !important;
+  box-shadow: 0 0 0 2px rgba(23, 74, 126, 0.15) !important;
+}
+
+div.dt-container .dt-length {
+  display: inline-flex !important;
+  align-items: center !important;
+  font-size: 13px !important;
+  color: #3c4043 !important;
+  margin: 0 !important;
+  gap: 6px !important;
+}
+
+div.dt-container .dt-length select {
+  border: 1px solid var(--nx-border-input) !important;
+  border-radius: var(--nx-radius) !important;
+  padding: 5px 28px 5px 10px !important;
+  font-size: 13px !important;
+  color: #3c4043 !important;
+  margin: 0 4px !important;
+  outline: none !important;
+}
+
+div.dt-container .dt-info {
+  font-size: 13.5px !important;
+  color: var(--nx-text-muted) !important;
+  padding-top: 0 !important;
+  margin: 0 !important;
+  font-weight: 400 !important;
+}
+
+div.dt-container .dt-paging .pagination {
+  margin: 0 !important;
+  gap: 6px !important;
+  align-items: center !important;
+}
+
+div.dt-container .dt-paging .page-item .page-link {
+  min-width: 38px !important;
+  height: 38px !important;
+  padding: 0 10px !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  font-size: 13.5px !important;
+  font-weight: 500 !important;
+  color: #475569 !important;
+  background-color: #ffffff !important;
+  border: 1px solid #e2e8f0 !important;
+  border-radius: var(--nx-radius) !important;
+  box-shadow: none !important;
+  transition: all 0.15s ease !important;
+}
+
+div.dt-container .dt-paging .page-item .page-link:hover {
+  background-color: #f1f5f9 !important;
+  border-color: #cbd5e1 !important;
+  color: #1e293b !important;
+}
+
+div.dt-container .dt-paging .page-item.active .page-link {
+  background-color: var(--nx-primary-soft) !important;
+  border-color: var(--nx-primary-border) !important;
+  color: var(--nx-primary) !important;
+  font-weight: 700 !important;
+}
+
+div.dt-container .dt-paging .page-item.disabled .page-link {
+  background-color: #f8fafc !important;
+  border-color: #edf2f7 !important;
+  color: #cbd5e1 !important;
+  cursor: not-allowed !important;
+  opacity: 0.7 !important;
+}
+
+div.dt-container table.dataTable {
+  margin-top: 0 !important;
+  margin-bottom: 0 !important;
+  border-collapse: collapse !important;
+  width: 100% !important;
+}
+
+div.dt-container table.dataTable thead th {
+  background-color: #f8fafc !important;
+  color: #475569 !important;
+  font-weight: 600 !important;
+  font-size: 12.5px !important;
+  border-bottom: 1px solid #e2e8f0 !important;
+  padding: 8px 12px !important;
+}
+
+div.dt-container table.dataTable tbody td {
+  padding: 7px 12px !important;
+  font-size: 13px !important;
+  color: #334155 !important;
+  border-bottom: 1px solid #f1f5f9 !important;
+  vertical-align: middle !important;
+  line-height: 1.35 !important;
+}
+
+div.dt-container table.dataTable tbody td .btn-group .btn {
+  width: 32px !important;
+  height: 32px !important;
+  padding: 0 !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  border-radius: 6px !important;
+  margin: 0 1px !important;
+}

@@ -54,7 +54,8 @@
                 "input": "public"
               }
             ],
-            "styles": ["src/styles.css"]
+            "styles": ["src/styles.css"],
+            "scripts": ["dist/nexura-layout/nx-admin-layout.js"]
           },
           "configurations": {
             "production": {
