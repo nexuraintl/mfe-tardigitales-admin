@@ -1,59 +1,101 @@
-<section class="view">
-  <header class="page-header">
-    <div>
-      <h1>Campos del validador (verificación pública)</h1>
-      <p>Defina la información visible al consultar el código QR de una tarjeta.</p>
-    </div>
-    <div class="header-actions">
-      <button type="button" class="btn btn-outline-secondary" (click)="volver()">← Volver</button>
-    </div>
-  </header>
-
-  <!-- Alertas del Sistema -->
-  <nx-alert [error]="currentError" (onClose)="currentError = null"></nx-alert>
+<!-- Alertas del Sistema -->
+<nx-alert [error]="currentError" (onClose)="currentError = null"></nx-alert>
   <nx-alert *ngIf="mensajeExito" type="success" [message]="mensajeExito" (onClose)="mensajeExito = ''"></nx-alert>
 
-  <div class="qr-validator-content">
-    <section class="card individual-issue-card">
-      <div class="individual-issue-card-header">Seleccione los campos visibles al verificar el QR de una tarjeta</div>
-      <div class="individual-issue-card-body">
-        <form id="qrValidatorForm">
-          <div class="qr-field-list">
-            <label class="qr-field-option">
-              <input type="checkbox" [(ngModel)]="config.val_foto" name="val_foto">
-              <span>Fotografía</span>
-            </label>
-            <label class="qr-field-option">
-              <input type="checkbox" [(ngModel)]="config.val_nombres" name="val_nombres">
-              <span>Nombres</span>
-            </label>
-            <label class="qr-field-option">
-              <input type="checkbox" [(ngModel)]="config.val_matricula" name="val_matricula">
-              <span>Matrícula</span>
-            </label>
-            <label class="qr-field-option">
-              <input type="checkbox" [(ngModel)]="config.val_numero_identificacion" name="val_numero_identificacion">
-              <span>Identificación</span>
-            </label>
-            <label class="qr-field-option">
-              <input type="checkbox" [(ngModel)]="config.val_codigo_tarjeta" name="val_codigo_tarjeta">
-              <span>Código de tarjeta</span>
-            </label>
-            <label class="qr-field-option">
-              <input type="checkbox" [(ngModel)]="config.val_estado" name="val_estado">
-              <span>Estado (vigente)</span>
-            </label>
-          </div>
-        </form>
+  <div class="row justify-content-center">
+    <div class="col-lg-8">
+      <div class="card shadow-sm border-0 mb-4">
+        <div class="card-header bg-white py-3 border-bottom">
+          <h5 class="card-title fw-bold mb-0 text-dark">
+            <span class="fa fa-qrcode text-primary me-2"></span> Configuración de Campos Visibles
+          </h5>
+        </div>
+        
+        <div class="card-body p-4">
+          <p class="text-muted small mb-4">
+            Marque las casillas de los campos que deben mostrarse a la ciudadanía en la página pública de verificación.
+          </p>
 
-        <div class="qr-validator-footer">
-          <button type="button" class="btn btn-primary btn-sm" (click)="guardarConfiguracion()" [disabled]="loading">
-            <span *ngIf="!loading">Guardar</span>
-            <span *ngIf="loading">Guardando...</span>
+          <form id="qrValidatorForm">
+            <div class="row g-3">
+              <div class="col-md-6">
+                <div class="card border p-3">
+                  <div class="form-check form-switch fs-5 mb-0 d-flex justify-content-between align-items-center">
+                    <label class="form-check-label fs-6 fw-semibold cursor-pointer" for="valFoto">
+                      <span class="fa fa-camera text-primary me-2"></span> Fotografía del titular
+                    </label>
+                    <input class="form-check-input cursor-pointer" type="checkbox" role="switch" id="valFoto" [(ngModel)]="config.val_foto" name="val_foto">
+                  </div>
+                </div>
+              </div>
+
+              <div class="col-md-6">
+                <div class="card border p-3">
+                  <div class="form-check form-switch fs-5 mb-0 d-flex justify-content-between align-items-center">
+                    <label class="form-check-label fs-6 fw-semibold cursor-pointer" for="valNombres">
+                      <span class="fa fa-user text-primary me-2"></span> Nombres y apellidos
+                    </label>
+                    <input class="form-check-input cursor-pointer" type="checkbox" role="switch" id="valNombres" [(ngModel)]="config.val_nombres" name="val_nombres">
+                  </div>
+                </div>
+              </div>
+
+              <div class="col-md-6">
+                <div class="card border p-3">
+                  <div class="form-check form-switch fs-5 mb-0 d-flex justify-content-between align-items-center">
+                    <label class="form-check-label fs-6 fw-semibold cursor-pointer" for="valMatricula">
+                      <span class="fa fa-id-card-o text-primary me-2"></span> Matrícula / T. Profesional
+                    </label>
+                    <input class="form-check-input cursor-pointer" type="checkbox" role="switch" id="valMatricula" [(ngModel)]="config.val_matricula" name="val_matricula">
+                  </div>
+                </div>
+              </div>
+
+              <div class="col-md-6">
+                <div class="card border p-3">
+                  <div class="form-check form-switch fs-5 mb-0 d-flex justify-content-between align-items-center">
+                    <label class="form-check-label fs-6 fw-semibold cursor-pointer" for="valId">
+                      <span class="fa fa-id-badge text-primary me-2"></span> Número de identificación
+                    </label>
+                    <input class="form-check-input cursor-pointer" type="checkbox" role="switch" id="valId" [(ngModel)]="config.val_numero_identificacion" name="val_numero_identificacion">
+                  </div>
+                </div>
+              </div>
+
+              <div class="col-md-6">
+                <div class="card border p-3">
+                  <div class="form-check form-switch fs-5 mb-0 d-flex justify-content-between align-items-center">
+                    <label class="form-check-label fs-6 fw-semibold cursor-pointer" for="valCodigo">
+                      <span class="fa fa-barcode text-primary me-2"></span> Código de tarjeta
+                    </label>
+                    <input class="form-check-input cursor-pointer" type="checkbox" role="switch" id="valCodigo" [(ngModel)]="config.val_codigo_tarjeta" name="val_codigo_tarjeta">
+                  </div>
+                </div>
+              </div>
+
+              <div class="col-md-6">
+                <div class="card border p-3">
+                  <div class="form-check form-switch fs-5 mb-0 d-flex justify-content-between align-items-center">
+                    <label class="form-check-label fs-6 fw-semibold cursor-pointer" for="valEstado">
+                      <span class="fa fa-check-circle-o text-primary me-2"></span> Estado (Vigente / Activo)
+                    </label>
+                    <input class="form-check-input cursor-pointer" type="checkbox" role="switch" id="valEstado" [(ngModel)]="config.val_estado" name="val_estado">
+                  </div>
+                </div>
+              </div>
+            </div>
+          </form>
+        </div>
+
+        <div class="card-footer bg-light border-top p-4 d-flex justify-content-between align-items-center flex-wrap gap-2">
+          <small class="text-muted">
+            <span class="fa fa-info-circle me-1"></span> Aplica a la página pública <code>/demogen/verificar/&lt;token&gt;</code>.
+          </small>
+          <button type="button" class="btn btn-primary px-4 py-2 fw-semibold" (click)="guardarConfiguracion()" [disabled]="loading">
+            <span *ngIf="loading" class="spinner-border spinner-border-sm me-1"></span>
+            {{ loading ? 'Guardando...' : 'Guardar Cambios' }}
           </button>
-          <small class="qr-validator-note">Aplica a la página pública <code>/demogen/verificar/&lt;token&gt;</code>.</small>
         </div>
       </div>
-    </section>
+    </div>
   </div>
-</section>

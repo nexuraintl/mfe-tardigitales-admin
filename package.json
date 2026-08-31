@@ -6,6 +6,7 @@
     "start": "ng serve --host 0.0.0.0 --port 4300",
     "build": "ng build",
     "build:mfe": "ng build && node build-mfe.js",
+    "build:shell": "node build-shell.mjs",
     "watch": "ng build --watch --configuration development",
     "test": "ng test",
     "docker:build": "docker build -t mfe-tardigitales-admin .",
@@ -24,6 +25,7 @@
     "@angular/forms": "^22.1.0",
     "@angular/platform-browser": "^22.1.0",
     "@angular/router": "^22.1.0",
+    "lit": "^3.3.3",
     "rxjs": "~7.8.0",
     "tslib": "^2.3.0"
   },
