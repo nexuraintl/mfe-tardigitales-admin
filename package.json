@@ -3,9 +3,9 @@
   "version": "0.0.0",
   "scripts": {
     "ng": "ng",
-    "start": "ng serve --host 0.0.0.0 --port 4300",
-    "build": "ng build",
-    "build:mfe": "ng build && node build-mfe.js",
+    "start": "node build-shell.mjs && ng serve --host 0.0.0.0 --port 4300",
+    "build": "node build-shell.mjs && ng build",
+    "build:mfe": "node build-shell.mjs && ng build && node build-mfe.js",
     "build:shell": "node build-shell.mjs",
     "watch": "ng build --watch --configuration development",
     "test": "ng test",

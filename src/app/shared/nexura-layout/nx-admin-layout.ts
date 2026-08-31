@@ -47,7 +47,7 @@ export class NxAdminLayout extends LitElement {
   showBackButton = true;
   backPath = '';
   pageTitle = '';
-  searchPlaceholder = 'en:recibidos';
+  searchPlaceholder = '';
   searchQuery = '';
 
   currentUser: UserProfile = {
@@ -630,12 +630,6 @@ export class NxAdminLayout extends LitElement {
                 ${sIdx < sections.length - 1 ? html`<div class="nx-sidebar-divider"></div>` : ''}
               `)}
             </nav>
-
-            <!-- Sidebar Footer -->
-            <div class="nx-sidebar-footer">
-              <img src="${this.logoPlatform}" alt="${this.appTitle}">
-              <small>${this.version}</small>
-            </div>
           </aside>
 
           <!-- MOBILE OVERLAY BACKDROP -->
