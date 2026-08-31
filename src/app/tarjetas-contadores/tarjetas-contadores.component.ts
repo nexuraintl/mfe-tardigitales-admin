@@ -114,6 +114,8 @@ export class TarjetasContadoresComponent implements OnInit, OnDestroy, AfterView
     });
   }
 
+  isTableReady = true;
+
   private destroyDataTable(): void {
     if (this.dtInstance) {
       try {
@@ -124,18 +126,20 @@ export class TarjetasContadoresComponent implements OnInit, OnDestroy, AfterView
   }
 
   initDataTable(): void {
-    if (this.vistaActiva !== 'listado') return;
+    if (this.vistaActiva !== 'listado' || !this.isTableReady) return;
     this.ensureDataTablesLoaded().then(() => {
       setTimeout(() => {
         const tableEl = document.getElementById('tablaContadores');
         if (!tableEl) return;
-        this.destroyDataTable();
 
         const dtConstructor = (window as any).DataTable;
         if (typeof dtConstructor === 'function') {
           this.dtInstance = new dtConstructor('#tablaContadores', {
             pageLength: 10,
             responsive: true,
+            columnDefs: [
+              { targets: 0, type: 'num' }
+            ],
             order: [[0, 'asc']],
             language: {
               search: "",
@@ -180,21 +184,34 @@ export class TarjetasContadoresComponent implements OnInit, OnDestroy, AfterView
     });
   }
 
+  trackByTarjetaId(index: number, item: TarjetaContador): number | string {
+    return item.id || item.matricula || index;
+  }
+
   cargarTarjetas(): void {
+    this.destroyDataTable();
+    this.isTableReady = false;
     this.loading = true;
     this.currentError = null;
-    this.http.get<TarjetaContador[]>(`${API_BASE}/tarjetas/list?tipo_tarjeta=contadores&client_id=${this.clientId}`)
+    this.cdr.detectChanges();
+
+    const ts = new Date().getTime();
+    this.http.get<TarjetaContador[]>(`${API_BASE}/tarjetas/list?tipo_tarjeta=contadores&client_id=${this.clientId}&_t=${ts}`)
       .subscribe({
         next: (data) => {
-          this.tarjetas = data;
+          this.tarjetas = [...(data || [])];
           this.loading = false;
+          this.isTableReady = true;
           this.cdr.detectChanges();
-          this.initDataTable();
+          setTimeout(() => {
+            this.initDataTable();
+          }, 60);
         },
         error: (err) => {
           console.error('Error al cargar tarjetas de contadores:', err);
           this.currentError = this.errorHandler.parseError(err, 'MS_3830_TARJETAS_GET', `${API_BASE}/tarjetas/list`);
           this.loading = false;
+          this.isTableReady = true;
           this.cdr.detectChanges();
         }
       });

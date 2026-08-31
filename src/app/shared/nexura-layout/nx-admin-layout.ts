@@ -38,8 +38,8 @@ export class NxAdminLayout extends LitElement {
     this.closedGroups.clear();
     this.requestUpdate('activePath', oldVal);
   }
-  logoPlatform = 'logo-app-solution.svg';
-  logoEntity = 'logo (1).png';
+  logoPlatform = 'assets/images/logo-app-solution.svg';
+  logoEntity = 'assets/images/logo-jcc.png';
   version = 'Versión 1.0.0';
   menuSections: MenuSection[] = [];
   menuItems: MenuItem[] = [];

@@ -70,6 +70,14 @@ async function buildMfe() {
       console.log(`¡nx-admin-layout.js independiente copiado a: ${layoutDest}!`);
     }
 
+    // Copiar carpeta assets si existe
+    const assetsSrc = path.join(srcDir, 'assets');
+    const assetsDest = path.join(destDir, 'assets');
+    if (fs.existsSync(assetsSrc)) {
+      fs.cpSync(assetsSrc, assetsDest, { recursive: true });
+      console.log(`¡Carpeta assets copiada a: ${assetsDest}!`);
+    }
+
     // Generar index.html para uso independiente
     const indexHtmlContent = `<!doctype html>
 <html lang="es">
