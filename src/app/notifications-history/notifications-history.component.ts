@@ -1,4 +1,4 @@
-import { Component, OnInit, OnDestroy, AfterViewInit, inject, ChangeDetectorRef } from '@angular/core';
+import { Component, OnInit, inject, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { HttpClient } from '@angular/common/http';
@@ -27,7 +27,7 @@ interface NotificationItem {
   templateUrl: './notifications-history.component.html',
   styleUrl: './notifications-history.component.css'
 })
-export class NotificationsHistoryComponent implements OnInit, OnDestroy, AfterViewInit {
+export class NotificationsHistoryComponent implements OnInit {
   private http = inject(HttpClient);
   private router = inject(Router);
   private cdr = inject(ChangeDetectorRef);
@@ -36,15 +36,21 @@ export class NotificationsHistoryComponent implements OnInit, OnDestroy, AfterVi
 
   notificaciones: NotificationItem[] = [];
   currentError: AppError | null = null;
-  private dtInstance: any = null;
-  private customFilterFn: any = null;
+  loading: boolean = false;
 
-  // Filtros
+  // Filtros y Búsqueda
   searchQuery: string = '';
   selectedChannel: string = '';
   selectedStatus: string = '';
   dateFrom: string = '';
   dateTo: string = '';
+
+  // Paginación y Ordenamiento Nativo en Angular
+  currentPage: number = 1;
+  pageSize: number = 10;
+  pageSizeOptions: number[] = [5, 10, 25, 50];
+  sortColumn: keyof NotificationItem | 'id' = 'fecha';
+  sortDirection: 'asc' | 'desc' = 'desc';
 
   // Detalle de Notificación (Modal)
   selectedNotification: NotificationItem | null = null;
@@ -58,173 +64,132 @@ export class NotificationsHistoryComponent implements OnInit, OnDestroy, AfterVi
     this.cargarNotificaciones();
   }
 
-  ngAfterViewInit(): void {
-    this.ensureDataTablesLoaded();
-  }
-
-  ngOnDestroy(): void {
-    this.destroyDataTable();
-    if (this.customFilterFn && (window as any).DataTable?.ext?.search) {
-      const idx = (window as any).DataTable.ext.search.indexOf(this.customFilterFn);
-      if (idx !== -1) {
-        (window as any).DataTable.ext.search.splice(idx, 1);
-      }
-    }
-  }
-
-  private ensureDataTablesLoaded(): Promise<void> {
-    if ((window as any).DataTable) {
-      return Promise.resolve();
-    }
-    return new Promise((resolve) => {
-      if (document.querySelector('script[src*="datatables.net/2.3.1/js/dataTables.min.js"]')) {
-        const timer = setInterval(() => {
-          if ((window as any).DataTable) {
-            clearInterval(timer);
-            resolve();
-          }
-        }, 50);
-        return;
-      }
-      const jqScript = document.createElement('script');
-      jqScript.src = 'https://code.jquery.com/jquery-3.7.1.min.js';
-      jqScript.onload = () => {
-        const dtScript = document.createElement('script');
-        dtScript.src = 'https://cdn.datatables.net/2.3.1/js/dataTables.min.js';
-        dtScript.onload = () => {
-          const dtBs5Script = document.createElement('script');
-          dtBs5Script.src = 'https://cdn.datatables.net/2.3.1/js/dataTables.bootstrap5.min.js';
-          dtBs5Script.onload = () => resolve();
-          document.head.appendChild(dtBs5Script);
-        };
-        document.head.appendChild(dtScript);
-      };
-      document.head.appendChild(jqScript);
-    });
-  }
-
-  isTableReady = true;
-
-  private destroyDataTable(): void {
-    if (this.dtInstance) {
-      try {
-        this.dtInstance.destroy();
-      } catch (e) {}
-      this.dtInstance = null;
-    }
-  }
-
-  initDataTable(): void {
-    if (!this.isTableReady) return;
-    this.ensureDataTablesLoaded().then(() => {
-      setTimeout(() => {
-        const tableEl = document.getElementById('tablaHistorial');
-        if (!tableEl) return;
-
-        const dtConstructor = (window as any).DataTable;
-        if (typeof dtConstructor === 'function') {
-          // Registrar filtro personalizado conectado con la barra de filtros robusta
-          if (!this.customFilterFn && dtConstructor.ext?.search) {
-            this.customFilterFn = (settings: any, data: any, dataIndex: number) => {
-              if (settings.nTable.id !== 'tablaHistorial') return true;
-              const item = this.notificaciones[dataIndex];
-              if (!item) return true;
-
-              // Búsqueda por texto (título, creador, audiencia)
-              if (this.searchQuery) {
-                const q = this.searchQuery.toLowerCase();
-                const match = (item.titulo && item.titulo.toLowerCase().includes(q)) ||
-                              (item.creadoPor && item.creadoPor.toLowerCase().includes(q)) ||
-                              (item.audiencia && item.audiencia.toLowerCase().includes(q));
-                if (!match) return false;
-              }
-
-              // Filtro por canal
-              if (this.selectedChannel && item.canal !== this.selectedChannel) {
-                return false;
-              }
-
-              // Filtro por estado
-              if (this.selectedStatus && item.estado !== this.selectedStatus) {
-                return false;
-              }
-
-              // Filtro por fecha desde / hasta
-              if (this.dateFrom || this.dateTo) {
-                const nDateStr = item.fecha ? item.fecha.substring(0, 10) : '';
-                if (this.dateFrom && (!nDateStr || nDateStr < this.dateFrom)) return false;
-                if (this.dateTo && (!nDateStr || nDateStr > this.dateTo)) return false;
-              }
-
-              return true;
-            };
-            dtConstructor.ext.search.push(this.customFilterFn);
-          }
-
-          this.dtInstance = new dtConstructor('#tablaHistorial', {
-            pageLength: 10,
-            responsive: true,
-            order: [[5, 'desc']], // Ordenar por fecha y hora descendente por defecto
-            language: {
-              search: "",
-              lengthMenu: "Mostrar _MENU_ registros",
-              info: "Mostrando _START_ a _END_ de _TOTAL_ registros",
-              infoEmpty: "Mostrando 0 a 0 de 0 registros",
-              infoFiltered: "(filtrado de _MAX_ registros totales)",
-              zeroRecords: "No se encontraron notificaciones con los filtros seleccionados",
-              paginate: {
-                first: "««",
-                last: "»»",
-                next: "»",
-                previous: "«"
-              }
-            },
-            layout: {
-              topStart: null, // Ocultar el buscador propio de DataTables para usar el buscador robusto
-              topEnd: 'pageLength',
-              bottomStart: 'info',
-              bottomEnd: 'paging'
-            }
-          });
-        }
-      }, 50);
-    });
-  }
-
-  trackByNotifId(index: number, item: NotificationItem): number | string {
-    return item.id || index;
-  }
-
   cargarNotificaciones(): void {
-    this.destroyDataTable();
-    this.isTableReady = false;
+    this.loading = true;
     this.currentError = null;
-    this.cdr.detectChanges();
 
     const ts = new Date().getTime();
     this.http.get<NotificationItem[]>(`${API_BASE}/notificaciones/list?client_id=${this.clientId}&_t=${ts}`)
       .subscribe({
         next: (data) => {
-          this.notificaciones = [...(data || [])];
-          this.isTableReady = true;
+          this.notificaciones = data || [];
+          this.loading = false;
           this.cdr.detectChanges();
-          setTimeout(() => {
-            this.initDataTable();
-          }, 60);
         },
         error: (err) => {
           console.error('Error al cargar notificaciones de la API:', err);
           this.currentError = this.errorHandler.parseError(err, 'MS_3820_NOTIFICACIONES_GET', `${API_BASE}/notificaciones/list`);
-          this.isTableReady = true;
+          this.loading = false;
           this.cdr.detectChanges();
         }
       });
   }
 
-  onFilterChange(): void {
-    if (this.dtInstance) {
-      this.dtInstance.draw();
+  // Filtrado reactivo puro
+  get filteredNotifications(): NotificationItem[] {
+    return this.notificaciones.filter(n => {
+      const q = this.searchQuery.toLowerCase().trim();
+      const matchSearch = !q ||
+        (n.titulo && n.titulo.toLowerCase().includes(q)) ||
+        (n.creadoPor && n.creadoPor.toLowerCase().includes(q)) ||
+        (n.audiencia && n.audiencia.toLowerCase().includes(q)) ||
+        (n.id && n.id.toString().includes(q));
+
+      const matchChannel = !this.selectedChannel || n.canal === this.selectedChannel;
+      const matchStatus = !this.selectedStatus || n.estado === this.selectedStatus;
+
+      let matchDate = true;
+      if (this.dateFrom || this.dateTo) {
+        const nDateStr = n.fecha ? n.fecha.substring(0, 10) : '';
+        if (this.dateFrom && (!nDateStr || nDateStr < this.dateFrom)) matchDate = false;
+        if (this.dateTo && (!nDateStr || nDateStr > this.dateTo)) matchDate = false;
+      }
+
+      return matchSearch && matchChannel && matchStatus && matchDate;
+    });
+  }
+
+  get sortedNotifications(): NotificationItem[] {
+    const list = [...this.filteredNotifications];
+    const col = this.sortColumn;
+    const dir = this.sortDirection === 'asc' ? 1 : -1;
+
+    return list.sort((a, b) => {
+      const valA = (a as any)[col];
+      const valB = (b as any)[col];
+
+      if (valA === valB) return 0;
+      if (valA === undefined || valA === null) return 1 * dir;
+      if (valB === undefined || valB === null) return -1 * dir;
+
+      if (typeof valA === 'number' && typeof valB === 'number') {
+        return (valA - valB) * dir;
+      }
+      return String(valA).localeCompare(String(valB), 'es', { numeric: true }) * dir;
+    });
+  }
+
+  get pagedNotifications(): NotificationItem[] {
+    const start = (this.currentPage - 1) * this.pageSize;
+    return this.sortedNotifications.slice(start, start + this.pageSize);
+  }
+
+  get totalPages(): number {
+    return Math.max(1, Math.ceil(this.filteredNotifications.length / this.pageSize));
+  }
+
+  get totalRecords(): number {
+    return this.filteredNotifications.length;
+  }
+
+  get startRecord(): number {
+    if (this.totalRecords === 0) return 0;
+    return (this.currentPage - 1) * this.pageSize + 1;
+  }
+
+  get endRecord(): number {
+    return Math.min(this.currentPage * this.pageSize, this.totalRecords);
+  }
+
+  get pagesArray(): number[] {
+    const pages: number[] = [];
+    const maxVisible = 5;
+    let start = Math.max(1, this.currentPage - Math.floor(maxVisible / 2));
+    let end = Math.min(this.totalPages, start + maxVisible - 1);
+
+    if (end - start + 1 < maxVisible) {
+      start = Math.max(1, end - maxVisible + 1);
     }
+
+    for (let i = start; i <= end; i++) {
+      pages.push(i);
+    }
+    return pages;
+  }
+
+  ordenarPor(columna: keyof NotificationItem | 'id'): void {
+    if (this.sortColumn === columna) {
+      this.sortDirection = this.sortDirection === 'asc' ? 'desc' : 'asc';
+    } else {
+      this.sortColumn = columna;
+      this.sortDirection = 'desc';
+    }
+    this.currentPage = 1;
+  }
+
+  cambiarPagina(p: number): void {
+    if (p >= 1 && p <= this.totalPages) {
+      this.currentPage = p;
+    }
+  }
+
+  cambiarTamanoPagina(nuevoTamano: number): void {
+    this.pageSize = Number(nuevoTamano);
+    this.currentPage = 1;
+  }
+
+  onFilterChange(): void {
+    this.currentPage = 1;
   }
 
   limpiarFiltros(): void {
@@ -233,9 +198,7 @@ export class NotificationsHistoryComponent implements OnInit, OnDestroy, AfterVi
     this.selectedStatus = '';
     this.dateFrom = '';
     this.dateTo = '';
-    if (this.dtInstance) {
-      this.dtInstance.draw();
-    }
+    this.currentPage = 1;
     this.cdr.detectChanges();
   }
 
@@ -256,25 +219,8 @@ export class NotificationsHistoryComponent implements OnInit, OnDestroy, AfterVi
     return this.notificaciones.filter(n => n.estado === 'Fallida').length;
   }
 
-  get filteredNotifications(): NotificationItem[] {
-    return this.notificaciones.filter(n => {
-      const matchSearch = !this.searchQuery ||
-        (n.titulo && n.titulo.toLowerCase().includes(this.searchQuery.toLowerCase())) ||
-        (n.creadoPor && n.creadoPor.toLowerCase().includes(this.searchQuery.toLowerCase())) ||
-        (n.audiencia && n.audiencia.toLowerCase().includes(this.searchQuery.toLowerCase()));
-
-      const matchChannel = !this.selectedChannel || n.canal === this.selectedChannel;
-      const matchStatus = !this.selectedStatus || n.estado === this.selectedStatus;
-
-      let matchDate = true;
-      if (this.dateFrom || this.dateTo) {
-        const nDateStr = n.fecha ? n.fecha.substring(0, 10) : '';
-        if (this.dateFrom && (!nDateStr || nDateStr < this.dateFrom)) matchDate = false;
-        if (this.dateTo && (!nDateStr || nDateStr > this.dateTo)) matchDate = false;
-      }
-
-      return matchSearch && matchChannel && matchStatus && matchDate;
-    });
+  trackByNotifId(index: number, item: NotificationItem): number | string {
+    return item.id || index;
   }
 
   verDetalle(notificacion: NotificationItem): void {

@@ -1,4 +1,4 @@
-import { Component, OnInit, OnDestroy, AfterViewInit, inject, ChangeDetectorRef, HostListener } from '@angular/core';
+import { Component, OnInit, inject, ChangeDetectorRef, HostListener } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { HttpClient } from '@angular/common/http';
@@ -28,7 +28,7 @@ interface TarjetaSociedad {
   templateUrl: './tarjetas-sociedades.component.html',
   styleUrl: './tarjetas-sociedades.component.css'
 })
-export class TarjetasSociedadesComponent implements OnInit, OnDestroy, AfterViewInit {
+export class TarjetasSociedadesComponent implements OnInit {
   private http = inject(HttpClient);
   private cdr = inject(ChangeDetectorRef);
   private errorHandler = inject(ErrorHandlerService);
@@ -37,14 +37,16 @@ export class TarjetasSociedadesComponent implements OnInit, OnDestroy, AfterView
   tarjetas: TarjetaSociedad[] = [];
   loading: boolean = false;
   currentError: AppError | null = null;
-  private dtInstance: any = null;
 
-  // Filtros y Buscador
+  // Búsqueda, Filtros y Paginación Nativa en Angular
   searchQuery: string = '';
   filterColumn: string = '';
   filterValue: string = '';
   pageSize: number = 10;
+  pageSizeOptions: number[] = [5, 10, 25, 50];
   currentPage: number = 1;
+  sortColumn: keyof TarjetaSociedad | 'id' = 'id';
+  sortDirection: 'asc' | 'desc' = 'asc';
 
   // Modal Detalle y Tarjeta Digital
   selectedTarjeta: TarjetaSociedad | null = null;
@@ -71,147 +73,29 @@ export class TarjetasSociedadesComponent implements OnInit, OnDestroy, AfterView
   bulkResultText: string = '';
   bulkResultClass: string = 'bulk-result';
 
+  // Menú de acciones
+  activeMenuId: number | null = null;
+
   ngOnInit(): void {
     this.cargarTarjetas();
   }
 
-  ngAfterViewInit(): void {
-    this.ensureDataTablesLoaded();
-  }
-
-  ngOnDestroy(): void {
-    this.destroyDataTable();
-  }
-
-  private ensureDataTablesLoaded(): Promise<void> {
-    if ((window as any).DataTable) {
-      return Promise.resolve();
-    }
-    return new Promise((resolve) => {
-      if (document.querySelector('script[src*="datatables.net/2.3.1/js/dataTables.min.js"]')) {
-        const timer = setInterval(() => {
-          if ((window as any).DataTable) {
-            clearInterval(timer);
-            resolve();
-          }
-        }, 50);
-        return;
-      }
-      const jqScript = document.createElement('script');
-      jqScript.src = 'https://code.jquery.com/jquery-3.7.1.min.js';
-      jqScript.onload = () => {
-        const dtScript = document.createElement('script');
-        dtScript.src = 'https://cdn.datatables.net/2.3.1/js/dataTables.min.js';
-        dtScript.onload = () => {
-          const dtBs5Script = document.createElement('script');
-          dtBs5Script.src = 'https://cdn.datatables.net/2.3.1/js/dataTables.bootstrap5.min.js';
-          dtBs5Script.onload = () => resolve();
-          document.head.appendChild(dtBs5Script);
-        };
-        document.head.appendChild(dtScript);
-      };
-      document.head.appendChild(jqScript);
-    });
-  }
-
-  isTableReady = true;
-
-  private destroyDataTable(): void {
-    if (this.dtInstance) {
-      try {
-        this.dtInstance.destroy();
-      } catch (e) {}
-      this.dtInstance = null;
-    }
-  }
-
-  initDataTable(): void {
-    if (this.vistaActiva !== 'listado' || !this.isTableReady) return;
-    this.ensureDataTablesLoaded().then(() => {
-      setTimeout(() => {
-        const tableEl = document.getElementById('tablaSociedades');
-        if (!tableEl) return;
-
-        const dtConstructor = (window as any).DataTable;
-        if (typeof dtConstructor === 'function') {
-          this.dtInstance = new dtConstructor('#tablaSociedades', {
-            pageLength: 10,
-            responsive: true,
-            columnDefs: [
-              { targets: 0, type: 'num' }
-            ],
-            order: [[0, 'asc']],
-            language: {
-              search: "",
-              searchPlaceholder: "Escriba para filtrar...",
-              lengthMenu: "Mostrar _MENU_ registros",
-              info: "Mostrando _START_ a _END_ de _TOTAL_ registros",
-              infoEmpty: "Mostrando 0 a 0 de 0 registros",
-              infoFiltered: "(filtrado de _MAX_ registros totales)",
-              zeroRecords: "No se encontraron sociedades registradas",
-              paginate: {
-                first: "««",
-                last: "»»",
-                next: "»",
-                previous: "«"
-              }
-            },
-            layout: {
-              topStart: 'search',
-              topEnd: 'pageLength',
-              bottomStart: 'info',
-              bottomEnd: 'paging'
-            }
-          });
-
-          // Agregar botón Buscar al lado del input de búsqueda
-          const searchContainer = tableEl.closest('.dt-container')?.querySelector('.dt-search');
-          if (searchContainer && !searchContainer.querySelector('.btn-dt-search')) {
-            const btn = document.createElement('button');
-            btn.type = 'button';
-            btn.className = 'btn btn-outline-primary btn-sm btn-dt-search ms-2';
-            btn.innerHTML = '<span class="fa fa-search me-1"></span> Buscar';
-            btn.onclick = () => {
-              const input = searchContainer.querySelector('input') as HTMLInputElement;
-              if (input && this.dtInstance) {
-                this.dtInstance.search(input.value).draw();
-              }
-            };
-            searchContainer.appendChild(btn);
-          }
-        }
-      }, 50);
-    });
-  }
-
-  trackByTarjetaId(index: number, item: TarjetaSociedad): number | string {
-    return item.id || item.matricula || index;
-  }
-
   cargarTarjetas(): void {
-    this.destroyDataTable();
-    this.isTableReady = false;
     this.loading = true;
     this.currentError = null;
-    this.cdr.detectChanges();
 
     const ts = new Date().getTime();
     this.http.get<TarjetaSociedad[]>(`${API_BASE}/tarjetas/list?tipo_tarjeta=sociedades&client_id=${this.clientId}&_t=${ts}`)
       .subscribe({
         next: (data) => {
-          this.tarjetas = [...(data || [])];
+          this.tarjetas = data || [];
           this.loading = false;
-          this.isTableReady = true;
           this.cdr.detectChanges();
-          setTimeout(() => {
-            this.initDataTable();
-          }, 60);
         },
         error: (err) => {
           console.error('Error al cargar tarjetas de sociedades:', err);
           this.currentError = this.errorHandler.parseError(err, 'MS_3830_TARJETAS_GET', `${API_BASE}/tarjetas/list`);
           this.loading = false;
-          this.isTableReady = true;
           this.cdr.detectChanges();
         }
       });
@@ -220,24 +104,25 @@ export class TarjetasSociedadesComponent implements OnInit, OnDestroy, AfterView
   // Filtrado reactivo
   get filteredTarjetas(): TarjetaSociedad[] {
     return this.tarjetas.filter(t => {
-      const matchSearch = !this.searchQuery ||
-        t.solicitante.toLowerCase().includes(this.searchQuery.toLowerCase()) ||
-        t.documento.toLowerCase().includes(this.searchQuery.toLowerCase()) ||
-        t.matricula.toLowerCase().includes(this.searchQuery.toLowerCase()) ||
-        t.representante.toLowerCase().includes(this.searchQuery.toLowerCase()) ||
-        t.codigo.toLowerCase().includes(this.searchQuery.toLowerCase());
+      const q = this.searchQuery.toLowerCase().trim();
+      const matchSearch = !q ||
+        t.solicitante.toLowerCase().includes(q) ||
+        t.documento.toLowerCase().includes(q) ||
+        t.matricula.toLowerCase().includes(q) ||
+        (t.representante && t.representante.toLowerCase().includes(q)) ||
+        (t.correo && t.correo.toLowerCase().includes(q)) ||
+        t.codigo.toLowerCase().includes(q) ||
+        (t.expediente && t.expediente.toString().includes(q));
 
       let matchColumn = true;
       if (this.filterColumn && this.filterValue) {
         const val = this.filterValue.toLowerCase();
-        if (this.filterColumn === 'razonSocial') {
-          matchColumn = t.solicitante.toLowerCase().includes(val);
-        } else if (this.filterColumn === 'nit') {
+        if (this.filterColumn === 'documento') {
           matchColumn = t.documento.toLowerCase().includes(val);
-        } else if (this.filterColumn === 'registro') {
+        } else if (this.filterColumn === 'matricula') {
           matchColumn = t.matricula.toLowerCase().includes(val);
-        } else if (this.filterColumn === 'representante') {
-          matchColumn = t.representante.toLowerCase().includes(val);
+        } else if (this.filterColumn === 'solicitante') {
+          matchColumn = t.solicitante.toLowerCase().includes(val);
         } else if (this.filterColumn === 'tarjeta') {
           matchColumn = t.tarjeta.toLowerCase() === val;
         }
@@ -247,14 +132,37 @@ export class TarjetasSociedadesComponent implements OnInit, OnDestroy, AfterView
     });
   }
 
-  // Paginación
-  get totalPages(): number {
-    return Math.max(1, Math.ceil(this.filteredTarjetas.length / this.pageSize));
+  get sortedTarjetas(): TarjetaSociedad[] {
+    const list = [...this.filteredTarjetas];
+    const col = this.sortColumn;
+    const dir = this.sortDirection === 'asc' ? 1 : -1;
+
+    return list.sort((a, b) => {
+      const valA = (a as any)[col];
+      const valB = (b as any)[col];
+
+      if (valA === valB) return 0;
+      if (valA === undefined || valA === null) return 1 * dir;
+      if (valB === undefined || valB === null) return -1 * dir;
+
+      if (typeof valA === 'number' && typeof valB === 'number') {
+        return (valA - valB) * dir;
+      }
+      return String(valA).localeCompare(String(valB), 'es', { numeric: true }) * dir;
+    });
   }
 
   get paginatedTarjetas(): TarjetaSociedad[] {
     const start = (this.currentPage - 1) * this.pageSize;
-    return this.filteredTarjetas.slice(start, start + this.pageSize);
+    return this.sortedTarjetas.slice(start, start + this.pageSize);
+  }
+
+  get totalPages(): number {
+    return Math.max(1, Math.ceil(this.filteredTarjetas.length / this.pageSize));
+  }
+
+  get totalRecords(): number {
+    return this.filteredTarjetas.length;
   }
 
   get recordRangeStart(): number {
@@ -265,10 +173,49 @@ export class TarjetasSociedadesComponent implements OnInit, OnDestroy, AfterView
     return Math.min(this.currentPage * this.pageSize, this.filteredTarjetas.length);
   }
 
+  get pagesArray(): number[] {
+    const pages: number[] = [];
+    const maxVisible = 5;
+    let start = Math.max(1, this.currentPage - Math.floor(maxVisible / 2));
+    let end = Math.min(this.totalPages, start + maxVisible - 1);
+
+    if (end - start + 1 < maxVisible) {
+      start = Math.max(1, end - maxVisible + 1);
+    }
+
+    for (let i = start; i <= end; i++) {
+      pages.push(i);
+    }
+    return pages;
+  }
+
+  ordenarPor(columna: keyof TarjetaSociedad | 'id'): void {
+    if (this.sortColumn === columna) {
+      this.sortDirection = this.sortDirection === 'asc' ? 'desc' : 'asc';
+    } else {
+      this.sortColumn = columna;
+      this.sortDirection = 'asc';
+    }
+    this.currentPage = 1;
+  }
+
   cambiarPagina(p: number): void {
     if (p >= 1 && p <= this.totalPages) {
       this.currentPage = p;
     }
+  }
+
+  cambiarTamanoPagina(nuevoTamano: number): void {
+    this.pageSize = Number(nuevoTamano);
+    this.currentPage = 1;
+  }
+
+  onSearchChange(): void {
+    this.currentPage = 1;
+  }
+
+  trackBySociedadId(index: number, item: TarjetaSociedad): number | string {
+    return item.id || item.matricula || index;
   }
 
   abrirDetalle(t: TarjetaSociedad): void {
@@ -292,9 +239,8 @@ export class TarjetasSociedadesComponent implements OnInit, OnDestroy, AfterView
     this.selectedTarjeta = null;
   }
 
-  // Simulador de matriz QR en base a un Seed
   getQrDot(x: number, y: number): boolean {
-    return ((x * 17 + this.qrSeed * 13 + x * y * 5) % 11) < 5;
+    return ((x * 23 + this.qrSeed * 17 + x * y * 7) % 11) < 5;
   }
 
   volver(): void {
@@ -305,7 +251,6 @@ export class TarjetasSociedadesComponent implements OnInit, OnDestroy, AfterView
     }
   }
 
-  // Métodos para Emisión Individual (Nueva tarjeta de sociedad)
   abrirNuevaTarjeta(): void {
     this.vistaActiva = 'emision-individual';
     this.nuevaIdentificacion = '';
@@ -324,7 +269,6 @@ export class TarjetasSociedadesComponent implements OnInit, OnDestroy, AfterView
     this.mensajeError = '';
   }
 
-  // Métodos para Emisión Masiva (Sociedades)
   abrirEmisionMasiva(): void {
     this.vistaActiva = 'emision-masiva';
     this.bulkFile = null;
@@ -349,7 +293,7 @@ export class TarjetasSociedadesComponent implements OnInit, OnDestroy, AfterView
   }
 
   descargarPlantillaCSV(): void {
-    const header = "nit\n";
+    const header = "nit_sociedad\n";
     const example = "900123456-7\n";
     const blob = new Blob([header + example], { type: "text/csv;charset=utf-8" });
     const url = URL.createObjectURL(blob);
@@ -418,33 +362,33 @@ export class TarjetasSociedadesComponent implements OnInit, OnDestroy, AfterView
           const item = res && res.disponibles && res.disponibles.length > 0 ? res.disponibles[0] : null;
 
           if (item) {
-            const docNum = item.NIT || identification;
-            const registroNum = String(item.INSCRIPCION || item.EXPEDIENTE || '0');
+            const razonSocial = item.RAZON_SOCIAL || item.NOMBRES || "Sociedad de Contadores Públicos";
+            const docNum = item.NO_DOCUMENTO || item.NIT || identification;
 
             const localTarjeta = this.tarjetas.find(t =>
               t.documento.replace(/\D/g, '') === String(docNum).replace(/\D/g, '')
             );
 
             this.datosConsulta = {
-              razonSocial: item.RAZON_SOCIAL || "Sociedad de Contadores",
-              nit: docNum,
-              registro: item.INSCRIPCION ? `SOC-${item.INSCRIPCION}` : (localTarjeta?.matricula || `SOC-${docNum}`),
+              solicitante: razonSocial,
+              documento: `NIT ${docNum}`,
+              matricula: item.NO_TARJETA || `REG-${docNum}`,
               expediente: item.NO_EXPD || item.EXPEDIENTE || 0,
-              correo: localTarjeta?.correo || `contacto.${String(docNum).slice(-4)}@example.com`,
-              representante: item.REPRESENTANTE || localTarjeta?.representante || "Representante Legal Registrado",
-              resolucion: item.RESOLUCION ? `Resolución ${item.RESOLUCION} de ${item.FECH_RESOLU ? item.FECH_RESOLU.split('-')[0] : '2026'}` : `Resolución de Registro`,
-              estado: item.ESTADO_SOCIEDAD || "ACTIVO",
-              tipoSociedad: item.TIPO_SOCIEDAD || "SOCIEDAD DE CONTADORES",
+              correo: localTarjeta?.correo || `contacto@${razonSocial.toLowerCase().replace(/[^a-z0-9]/g, '')}.com`,
+              representante: item.REPRESENTANTE_LEGAL || "Representante Legal Autorizado",
+              estado: item.ESTADO_SOCIEDAD || item.ESTADO_CONTADOR || "ACTIVO",
+              seccional: item.SECCIONAL || "",
+              resolucion: item.RESOLUCION || "",
               existe: !!localTarjeta
             };
           } else {
             this.datosConsulta = null;
-            this.mensajeError = "No se encontraron registros oficiales para el NIT ingresado.";
+            this.mensajeError = "No se encontraron registros de sociedad oficial para el NIT ingresado.";
           }
           this.cdr.detectChanges();
         },
         error: (err) => {
-          console.error('Error al consultar sociedad en la JCC:', err);
+          console.error('Error al consultar registro de sociedad en la JCC:', err);
           this.cargandoBusqueda = false;
           this.busquedaRealizada = true;
           this.datosConsulta = null;
@@ -464,11 +408,11 @@ export class TarjetasSociedadesComponent implements OnInit, OnDestroy, AfterView
 
     const payload = {
       tipo_tarjeta: "sociedades",
-      codigo: `TJS-${new Date().getTime()}-${this.datosConsulta.registro.replace(/\D/g, '')}`,
+      codigo: `SOC-${new Date().getTime()}-${this.datosConsulta.matricula.replace(/\D/g, '')}`,
       expediente: this.datosConsulta.expediente,
-      solicitante: this.datosConsulta.razonSocial,
-      documento: this.datosConsulta.nit,
-      matricula: this.datosConsulta.registro,
+      solicitante: this.datosConsulta.solicitante,
+      documento: this.datosConsulta.documento,
+      matricula: this.datosConsulta.matricula,
       correo: this.datosConsulta.correo,
       representante: this.datosConsulta.representante,
       tarjeta: "Activa",
@@ -478,8 +422,8 @@ export class TarjetasSociedadesComponent implements OnInit, OnDestroy, AfterView
 
     this.http.post(`${API_BASE}/tarjetas/create?client_id=${this.clientId}`, payload)
       .subscribe({
-        next: (response) => {
-          this.mensajeExito = "Emisión confirmada correctamente.";
+        next: () => {
+          this.mensajeExito = "Emisión de tarjeta para sociedad confirmada correctamente.";
           this.loading = false;
           this.cargarTarjetas();
           this.cdr.detectChanges();
@@ -494,16 +438,13 @@ export class TarjetasSociedadesComponent implements OnInit, OnDestroy, AfterView
       });
   }
 
-  // Variables y métodos para menú desplegable de acciones
-  activeMenuId: number | null = null;
-
   toggleActionsMenu(event: Event, id: number): void {
     event.stopPropagation();
     this.activeMenuId = this.activeMenuId === id ? null : id;
   }
 
-  @HostListener('document:click', ['$event'])
-  onDocumentClick(event: Event): void {
+  @HostListener('document:click')
+  onDocumentClick(): void {
     this.activeMenuId = null;
   }
 
@@ -518,7 +459,7 @@ export class TarjetasSociedadesComponent implements OnInit, OnDestroy, AfterView
           this.cdr.detectChanges();
         },
         error: (err) => {
-          console.error('Error al cargar historial de la tarjeta de sociedad:', err);
+          console.error('Error al cargar historial de la tarjeta:', err);
           this.currentError = this.errorHandler.parseError(err, 'MS_3832_TARJETAS_HISTORIAL', `${API_BASE}/tarjetas/historial/${t.id}`);
           this.cdr.detectChanges();
         }
@@ -536,7 +477,7 @@ export class TarjetasSociedadesComponent implements OnInit, OnDestroy, AfterView
       alert('No hay registros para exportar');
       return;
     }
-    const headers = ['Expediente', 'Razón Social', 'NIT', 'N.° Registro', 'Representante Legal', 'Estado', 'Fecha'];
+    const headers = ['Expediente', 'Razón Social', 'NIT', 'Registro Sociedad', 'Representante', 'Estado', 'Fecha'];
     const rows = this.filteredTarjetas.map(t => [
       `"${t.expediente}"`,
       `"${(t.solicitante || '').replace(/"/g, '""')}"`,
