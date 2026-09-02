@@ -254,7 +254,7 @@ export class App implements OnInit {
 
   navegarA(path: string): void {
     if (!path) return;
-    if (path.startsWith('/admin/reportes') || path.startsWith('http')) {
+    if (path.startsWith('/admin/tardigitales/reportes') || path.startsWith('/admin/reportes') || path.startsWith('http')) {
       window.location.href = path;
       return;
     }
