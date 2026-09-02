@@ -62,12 +62,22 @@ async function buildMfe() {
     fs.writeFileSync(outputCssPath, concatenatedCss, 'utf8');
     console.log(`¡CSS unificado creado con éxito en: ${outputCssPath}!`);
 
-    // Copiar bundle independiente de Lit Layout si existe
-    const layoutSrc = path.join(__dirname, 'dist', 'nexura-layout', 'nx-admin-layout.js');
-    const layoutDest = path.join(destDir, 'nx-admin-layout.js');
-    if (fs.existsSync(layoutSrc)) {
-      fs.copyFileSync(layoutSrc, layoutDest);
-      console.log(`¡nx-admin-layout.js independiente copiado a: ${layoutDest}!`);
+    // Copiar layout.js y layout.css de Web Components
+    const wcLayoutJs = path.join(__dirname, '..', 'wc_admin_layout', 'dist', 'layout.js');
+    const wcLayoutCss = path.join(__dirname, '..', 'wc_admin_layout', 'dist', 'layout.css');
+    
+    if (fs.existsSync(wcLayoutJs)) {
+      fs.copyFileSync(wcLayoutJs, path.join(destDir, 'layout.js'));
+      console.log(`¡layout.js copiado a: ${destDir}!`);
+    } else if (fs.existsSync(path.join(__dirname, 'public', 'layout.js'))) {
+      fs.copyFileSync(path.join(__dirname, 'public', 'layout.js'), path.join(destDir, 'layout.js'));
+    }
+
+    if (fs.existsSync(wcLayoutCss)) {
+      fs.copyFileSync(wcLayoutCss, path.join(destDir, 'layout.css'));
+      console.log(`¡layout.css copiado a: ${destDir}!`);
+    } else if (fs.existsSync(path.join(__dirname, 'public', 'layout.css'))) {
+      fs.copyFileSync(path.join(__dirname, 'public', 'layout.css'), path.join(destDir, 'layout.css'));
     }
 
     // Copiar carpeta assets si existe
@@ -88,14 +98,11 @@ async function buildMfe() {
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
-    <link rel="stylesheet" href="https://cdn.datatables.net/2.3.1/css/dataTables.bootstrap5.min.css">
+    <!-- Web Components Layout Oficial Nexura (Lit) -->
+    <link rel="stylesheet" href="layout.css">
     <link rel="stylesheet" href="jcc-portal-mfe.css">
-    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
-    <script src="https://cdn.datatables.net/2.3.1/js/dataTables.min.js"></script>
-    <script src="https://cdn.datatables.net/2.3.1/js/dataTables.bootstrap5.min.js"></script>
+    <script src="layout.js" type="module"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" defer></script>
-    <!-- Web Component de Layout Independiente compilado con Lit -->
-    <script src="nx-admin-layout.js"></script>
   </head>
   <body>
     <app-root></app-root>

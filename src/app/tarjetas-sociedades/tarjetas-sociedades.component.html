@@ -5,66 +5,198 @@
     <nx-alert [error]="currentError" (onClose)="currentError = null"></nx-alert>
     <nx-alert *ngIf="mensajeExito" type="success" [message]="mensajeExito" (onClose)="mensajeExito = ''"></nx-alert>
 
-    <!-- Tabla de Datos DataTables 2.3.1 -->
-    <div class="card shadow-sm border-0">
-      <div class="card-header bg-white py-3 border-bottom d-flex justify-content-between align-items-center flex-wrap gap-2">
+    <!-- Tabla de Datos 100% Nativa Angular -->
+    <div class="nx-table-card shadow-sm mb-4">
+      <div class="card-header bg-white py-3 px-3 border-bottom d-flex justify-content-between align-items-center flex-wrap gap-2">
         <div>
           <h5 class="card-title fw-bold mb-0 text-dark">
             <span class="fa fa-table text-secondary me-2"></span> Solicitudes de tarjetas para sociedades
           </h5>
           <small class="text-muted">Resultados del módulo de persona jurídica.</small>
         </div>
+        <span class="badge bg-light text-dark border px-3 py-2 fs-6 fw-semibold">{{ tarjetas.length }} registros</span>
       </div>
 
-      <div class="p-3">
-        <div class="table-responsive" *ngIf="isTableReady">
-          <table id="tablaSociedades" class="table table-hover align-middle mb-0 w-100">
-            <thead class="table-light">
-              <tr>
-                <th scope="col" class="ps-3" style="width: 50px;">#</th>
-                <th scope="col">Expediente</th>
-                <th scope="col">Razón social</th>
-                <th scope="col">NIT</th>
-                <th scope="col">N.° registro</th>
-                <th scope="col">Representante legal</th>
-                <th scope="col">Estado</th>
-                <th scope="col">Fecha</th>
-                <th scope="col" class="text-end pe-3" data-orderable="false">Acciones</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr *ngFor="let row of tarjetas; let i = index; trackBy: trackByTarjetaId">
-                <td class="ps-3 text-muted small">{{ i + 1 }}</td>
-                <td><code>{{ row.expediente }}</code></td>
-                <td><strong class="text-dark">{{ row.solicitante }}</strong></td>
-                <td>{{ row.documento }}</td>
-                <td><span class="badge bg-light text-dark border">{{ row.matricula }}</span></td>
-                <td class="text-muted small">{{ row.representante }}</td>
-                <td>
-                  <span class="badge" [ngClass]="{
-                    'bg-success': row.tarjeta === 'Activa' || row.tarjeta === 'Emitida',
-                    'bg-warning text-dark': row.tarjeta === 'Pendiente',
-                    'bg-danger': row.tarjeta === 'Cancelada' || row.tarjeta === 'Suspendida'
-                  }">{{ row.tarjeta }}</span>
-                </td>
-                <td class="text-muted small">{{ row.fecha }}</td>
-                <td class="text-end pe-3">
-                  <div class="btn-group btn-group-sm">
-                    <button class="btn btn-outline-primary" title="Ver detalle" (click)="abrirDetalle(row)">
-                      <span class="fa fa-eye"></span>
-                    </button>
-                    <button class="btn btn-outline-secondary" title="Ver tarjeta" (click)="abrirTarjeta(row)">
-                      <span class="fa fa-id-card-o"></span>
-                    </button>
-                    <button class="btn btn-outline-secondary" title="Historial" (click)="abrirHistorial(row)">
-                      <span class="fa fa-history"></span>
-                    </button>
-                  </div>
-                </td>
-              </tr>
-            </tbody>
-          </table>
+      <!-- Barra de Herramientas: Buscador y Selector de Registros -->
+      <div class="nx-table-toolbar">
+        <div class="nx-table-search-wrap">
+          <input 
+            type="text" 
+            class="nx-table-search-input" 
+            placeholder="Escriba para filtrar..." 
+            [(ngModel)]="searchQuery" 
+            (ngModelChange)="onSearchChange()"
+          >
+          <button 
+            *ngIf="searchQuery" 
+            type="button" 
+            class="btn btn-sm btn-link text-muted position-absolute end-0 me-2 p-0 text-decoration-none"
+            (click)="searchQuery = ''; onSearchChange()"
+            title="Limpiar búsqueda"
+          >
+            <span class="fa fa-times"></span>
+          </button>
         </div>
+
+        <div class="nx-table-length">
+          <span>Mostrar</span>
+          <select class="nx-table-length-select" [ngModel]="pageSize" (ngModelChange)="cambiarTamanoPagina($event)">
+            <option *ngFor="let opt of pageSizeOptions" [value]="opt">{{ opt }}</option>
+          </select>
+          <span>registros</span>
+        </div>
+      </div>
+
+      <div class="table-responsive">
+        <table class="table table-hover align-middle mb-0 w-100">
+          <thead class="table-light">
+            <tr>
+              <th scope="col" class="ps-3 nx-sortable" style="width: 60px;" (click)="ordenarPor('id')">
+                #
+                <span class="fa nx-sort-icon" [ngClass]="{
+                  'fa-sort': sortColumn !== 'id',
+                  'fa-sort-asc': sortColumn === 'id' && sortDirection === 'asc',
+                  'fa-sort-desc': sortColumn === 'id' && sortDirection === 'desc'
+                }"></span>
+              </th>
+              <th scope="col" class="nx-sortable" (click)="ordenarPor('expediente')">
+                Expediente
+                <span class="fa nx-sort-icon" [ngClass]="{
+                  'fa-sort': sortColumn !== 'expediente',
+                  'fa-sort-asc': sortColumn === 'expediente' && sortDirection === 'asc',
+                  'fa-sort-desc': sortColumn === 'expediente' && sortDirection === 'desc'
+                }"></span>
+              </th>
+              <th scope="col" class="nx-sortable" (click)="ordenarPor('solicitante')">
+                Razón social
+                <span class="fa nx-sort-icon" [ngClass]="{
+                  'fa-sort': sortColumn !== 'solicitante',
+                  'fa-sort-asc': sortColumn === 'solicitante' && sortDirection === 'asc',
+                  'fa-sort-desc': sortColumn === 'solicitante' && sortDirection === 'desc'
+                }"></span>
+              </th>
+              <th scope="col" class="nx-sortable" (click)="ordenarPor('documento')">
+                NIT
+                <span class="fa nx-sort-icon" [ngClass]="{
+                  'fa-sort': sortColumn !== 'documento',
+                  'fa-sort-asc': sortColumn === 'documento' && sortDirection === 'asc',
+                  'fa-sort-desc': sortColumn === 'documento' && sortDirection === 'desc'
+                }"></span>
+              </th>
+              <th scope="col" class="nx-sortable" (click)="ordenarPor('matricula')">
+                N.° registro
+                <span class="fa nx-sort-icon" [ngClass]="{
+                  'fa-sort': sortColumn !== 'matricula',
+                  'fa-sort-asc': sortColumn === 'matricula' && sortDirection === 'asc',
+                  'fa-sort-desc': sortColumn === 'matricula' && sortDirection === 'desc'
+                }"></span>
+              </th>
+              <th scope="col" class="nx-sortable" (click)="ordenarPor('representante')">
+                Representante legal
+                <span class="fa nx-sort-icon" [ngClass]="{
+                  'fa-sort': sortColumn !== 'representante',
+                  'fa-sort-asc': sortColumn === 'representante' && sortDirection === 'asc',
+                  'fa-sort-desc': sortColumn === 'representante' && sortDirection === 'desc'
+                }"></span>
+              </th>
+              <th scope="col" class="nx-sortable" (click)="ordenarPor('tarjeta')">
+                Estado
+                <span class="fa nx-sort-icon" [ngClass]="{
+                  'fa-sort': sortColumn !== 'tarjeta',
+                  'fa-sort-asc': sortColumn === 'tarjeta' && sortDirection === 'asc',
+                  'fa-sort-desc': sortColumn === 'tarjeta' && sortDirection === 'desc'
+                }"></span>
+              </th>
+              <th scope="col" class="nx-sortable" (click)="ordenarPor('fecha')">
+                Fecha
+                <span class="fa nx-sort-icon" [ngClass]="{
+                  'fa-sort': sortColumn !== 'fecha',
+                  'fa-sort-asc': sortColumn === 'fecha' && sortDirection === 'asc',
+                  'fa-sort-desc': sortColumn === 'fecha' && sortDirection === 'desc'
+                }"></span>
+              </th>
+              <th scope="col" class="text-end pe-3" style="width: 120px;">Acciones</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let row of paginatedTarjetas; trackBy: trackBySociedadId">
+              <td class="ps-3 text-muted small">#{{ row.id }}</td>
+              <td><code>{{ row.expediente }}</code></td>
+              <td><strong class="text-dark">{{ row.solicitante }}</strong></td>
+              <td>{{ row.documento }}</td>
+              <td><span class="badge bg-light text-dark border">{{ row.matricula }}</span></td>
+              <td class="text-muted small">{{ row.representante }}</td>
+              <td>
+                <span class="badge" [ngClass]="{
+                  'bg-success': row.tarjeta === 'Activa' || row.tarjeta === 'Emitida',
+                  'bg-warning text-dark': row.tarjeta === 'Pendiente',
+                  'bg-danger': row.tarjeta === 'Cancelada' || row.tarjeta === 'Suspendida'
+                }">{{ row.tarjeta }}</span>
+              </td>
+              <td class="text-muted small">{{ row.fecha }}</td>
+              <td class="text-end pe-3">
+                <div class="btn-group btn-group-sm">
+                  <button class="btn btn-outline-primary" title="Ver detalle" (click)="abrirDetalle(row)">
+                    <span class="fa fa-eye"></span>
+                  </button>
+                  <button class="btn btn-outline-secondary" title="Ver tarjeta" (click)="abrirTarjeta(row)">
+                    <span class="fa fa-id-card-o"></span>
+                  </button>
+                  <button class="btn btn-outline-secondary" title="Historial" (click)="abrirHistorial(row)">
+                    <span class="fa fa-history"></span>
+                  </button>
+                </div>
+              </td>
+            </tr>
+            <tr *ngIf="paginatedTarjetas.length === 0">
+              <td colspan="9" class="text-center py-4 text-muted">
+                <span class="fa fa-info-circle me-1"></span> No se encontraron sociedades registradas.
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Pie de Tabla con Paginación Nativa -->
+      <div class="nx-table-footer">
+        <div class="nx-table-info">
+          Mostrando {{ recordRangeStart }} a {{ recordRangeEnd }} de {{ totalRecords }} registros
+          <span *ngIf="searchQuery" class="text-muted">(filtrado de {{ tarjetas.length }} totales)</span>
+        </div>
+
+        <ul class="nx-table-pagination" *ngIf="totalPages > 1">
+          <li class="page-item" [class.disabled]="currentPage === 1">
+            <button type="button" class="page-link" (click)="cambiarPagina(1)" [disabled]="currentPage === 1" title="Primera página">
+              ««
+            </button>
+          </li>
+          <li class="page-item" [class.disabled]="currentPage === 1">
+            <button type="button" class="page-link" (click)="cambiarPagina(currentPage - 1)" [disabled]="currentPage === 1" title="Página anterior">
+              «
+            </button>
+          </li>
+
+          <li 
+            class="page-item" 
+            *ngFor="let p of pagesArray" 
+            [class.active]="p === currentPage"
+          >
+            <button type="button" class="page-link" (click)="cambiarPagina(p)">
+              {{ p }}
+            </button>
+          </li>
+
+          <li class="page-item" [class.disabled]="currentPage === totalPages">
+            <button type="button" class="page-link" (click)="cambiarPagina(currentPage + 1)" [disabled]="currentPage === totalPages" title="Página siguiente">
+              »
+            </button>
+          </li>
+          <li class="page-item" [class.disabled]="currentPage === totalPages">
+            <button type="button" class="page-link" (click)="cambiarPagina(totalPages)" [disabled]="currentPage === totalPages" title="Última página">
+              »»
+            </button>
+          </li>
+        </ul>
       </div>
     </div>
 </ng-container>

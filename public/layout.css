@@ -1,0 +1,484 @@
+/**
+ * NEXURA DESIGN SYSTEM & BASE STYLES
+ * Distribuido vía CDN: /web-components/admin/v1/layout.css
+ * Usado por todos los Microfrontends (Admin, Reportes, GFiles, etc.)
+ */
+
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200&display=swap');
+@import url('https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css');
+@import url('https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css');
+
+:root {
+  /* Design Tokens de Color */
+  --nx-primary: #174a7e;
+  --nx-primary-dark: #0d3158;
+  --nx-primary-light: #2c7fb8;
+  --nx-primary-soft: #eef5fb;
+  --nx-primary-border: #bad5ec;
+  
+  --nx-sidebar: #082b5c;
+  --nx-sidebar-dark: #061e42;
+  
+  --nx-bg: #f5f7fa;
+  --nx-card: #ffffff;
+  --nx-border: #dce5ee;
+  --nx-border-input: #dadce0;
+  --nx-text: #1e293b;
+  --nx-text-muted: #64748b;
+  
+  --nx-success: #198754;
+  --nx-warning: #d97706;
+  --nx-danger: #dc3545;
+  --nx-info: #087b96;
+  --nx-purple: #7647c8;
+
+  /* Geometría y Sombras */
+  --nx-radius: 8px;
+  --nx-radius-lg: 15px;
+  --nx-radius-full: 9999px;
+  --nx-shadow-sm: 0 1px 3px rgba(17, 56, 95, 0.05);
+  --nx-shadow: 0 8px 24px rgba(17, 56, 95, 0.08);
+  --nx-shadow-lg: 0 12px 28px rgba(17, 56, 95, 0.12);
+
+  /* Tipografía */
+  --bs-body-font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --font-family-base: var(--bs-body-font-family);
+  --primary: var(--nx-primary);
+  --primary-dark: var(--nx-primary-dark);
+  --primary-2: var(--nx-primary-light);
+  --primary-soft: var(--nx-primary-soft);
+  --bg: var(--nx-bg);
+  --card: var(--nx-card);
+  --border: var(--nx-border);
+  --text: var(--nx-text);
+  --muted: var(--nx-text-muted);
+  --radius: var(--nx-radius-lg);
+  --shadow: var(--nx-shadow);
+}
+
+/* ==========================================================================
+   1. RESET Y BASE
+   ========================================================================== */
+* {
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  margin: 0;
+  padding: 0;
+  background-color: var(--nx-bg);
+  color: var(--nx-text);
+  font-family: var(--bs-body-font-family);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+button, input, select, textarea {
+  font-family: inherit;
+}
+
+a {
+  text-decoration: none;
+}
+
+/* ==========================================================================
+   2. CABECERAS Y NAVEGACIÓN DE VISTA
+   ========================================================================== */
+.nx-view-title {
+  color: #3c4043;
+  font-size: 1.5em;
+  font-weight: 500;
+  margin: 0;
+  line-height: 1.2;
+}
+
+.nx-back-btn {
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  border: none !important;
+  background: #f1f3f4 !important;
+  color: #444746 !important;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 15px;
+  cursor: pointer;
+  transition: background-color 0.15s ease, color 0.15s ease, transform 0.1s ease;
+  outline: none;
+  flex-shrink: 0;
+  box-shadow: none !important;
+}
+
+.nx-back-btn:hover {
+  background: #e2e5e9 !important;
+  color: #1f1f1f !important;
+}
+
+.nx-back-btn:active {
+  background: #d3d7dc !important;
+  transform: scale(0.92);
+}
+
+.nx-back-btn i,
+.nx-back-btn span {
+  color: #444746;
+  font-size: 15px;
+}
+
+.nx-back-btn:hover i,
+.nx-back-btn:hover span {
+  color: #1f1f1f;
+}
+
+/* ==========================================================================
+   3. BOTONES ESTANDARIZADOS
+   ========================================================================== */
+.btn {
+  font-family: inherit;
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 1.42857;
+  padding: 8px 16px;
+  min-height: 38px;
+  border-radius: var(--nx-radius);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  cursor: pointer;
+  transition: background-color 0.15s ease, border-color 0.15s ease, color 0.15s ease, box-shadow 0.15s ease;
+  user-select: none;
+  border: 1px solid transparent;
+  text-decoration: none;
+}
+
+.btn-primary {
+  background-color: var(--nx-primary);
+  border-color: var(--nx-primary);
+  color: #ffffff !important;
+}
+
+.btn-primary:hover, .btn-primary:focus {
+  background-color: var(--nx-primary-dark);
+  border-color: var(--nx-primary-dark);
+  color: #ffffff !important;
+}
+
+.btn-outline-secondary {
+  background-color: #ffffff;
+  border-color: var(--nx-border-input);
+  color: #3c4043 !important;
+}
+
+.btn-outline-secondary:hover, .btn-outline-secondary:focus {
+  background-color: #f1f3f4;
+  border-color: var(--nx-border-input);
+  color: #1f1f1f !important;
+}
+
+.btn-success {
+  background-color: var(--nx-success);
+  border-color: var(--nx-success);
+  color: #ffffff !important;
+}
+
+.btn-success:hover, .btn-success:focus {
+  background-color: #157347;
+  border-color: #146c43;
+  color: #ffffff !important;
+}
+
+.btn-sm {
+  min-height: 30px;
+  padding: 4px 10px;
+  font-size: 12px;
+}
+
+/* ==========================================================================
+   4. TARJETAS Y CONTENEDORES
+   ========================================================================== */
+.nx-table-card {
+  background: var(--nx-card);
+  border: 1px solid var(--nx-border);
+  border-radius: var(--nx-radius-lg);
+  overflow: hidden;
+  box-shadow: var(--nx-shadow);
+}
+
+.nx-table-card .card-header {
+  background-color: #ffffff !important;
+  padding: 16px 20px;
+  border-bottom: 1px solid var(--nx-border);
+}
+
+.nx-kpi-card {
+  background: var(--nx-card);
+  border: 1px solid var(--nx-border);
+  border-radius: var(--nx-radius-lg);
+  padding: 20px;
+  box-shadow: var(--nx-shadow);
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.nx-kpi-card:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--nx-shadow-lg);
+}
+
+.nx-kpi-value {
+  font-size: 28px;
+  font-weight: 700;
+  color: var(--nx-primary);
+  line-height: 1.2;
+}
+
+.nx-kpi-label {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--nx-text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+/* ==========================================================================
+   5. BARRA DE HERRAMIENTAS Y BUSCADOR DE TABLA
+   ========================================================================== */
+.nx-table-toolbar {
+  padding: 16px 20px;
+  border-bottom: 1px solid #eef2f6;
+  background-color: #ffffff;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.nx-table-search-wrap {
+  position: relative;
+  min-width: 280px;
+  max-width: 420px;
+  flex: 1 1 280px;
+  display: flex;
+  align-items: center;
+}
+
+.nx-table-search-wrap::before {
+  content: "\f002";
+  font-family: "FontAwesome";
+  position: absolute;
+  left: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #9aa0a6;
+  font-size: 13px;
+  pointer-events: none;
+}
+
+.nx-table-search-input {
+  width: 100%;
+  padding: 8px 32px 8px 34px;
+  font-size: 13.5px;
+  border: 1px solid var(--nx-border-input);
+  border-radius: var(--nx-radius);
+  outline: none;
+  background-color: #ffffff;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.nx-table-search-input:focus {
+  border-color: var(--nx-primary-2);
+  box-shadow: 0 0 0 3px rgba(44, 127, 184, 0.12);
+}
+
+.nx-table-length {
+  display: inline-flex;
+  align-items: center;
+  font-size: 13px;
+  color: #3c4043;
+  margin: 0;
+  gap: 6px;
+}
+
+.nx-table-length-select {
+  border: 1px solid var(--nx-border-input);
+  border-radius: var(--nx-radius);
+  padding: 5px 28px 5px 10px;
+  font-size: 13px;
+  color: #3c4043;
+  margin: 0 4px;
+  outline: none;
+  background-color: #ffffff;
+}
+
+/* ==========================================================================
+   6. TABLAS Y PAGINACIÓN
+   ========================================================================== */
+.table thead th {
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: #475569;
+  background-color: #f8fafc !important;
+  border-bottom: 1px solid var(--nx-border);
+  padding: 12px 16px;
+  white-space: nowrap;
+}
+
+.table tbody td {
+  padding: 14px 16px;
+  border-bottom: 1px solid #f1f5f9;
+  font-size: 13.5px;
+  vertical-align: middle;
+}
+
+.table-hover tbody tr:hover {
+  background-color: #f8fafc;
+}
+
+th.nx-sortable {
+  cursor: pointer;
+  user-select: none;
+  transition: background-color 0.15s ease;
+}
+
+th.nx-sortable:hover {
+  background-color: #edf2f7 !important;
+}
+
+th.nx-sortable .nx-sort-icon {
+  opacity: 0.4;
+  margin-left: 6px;
+  font-size: 11px;
+}
+
+th.nx-sortable.sorted .nx-sort-icon {
+  opacity: 1;
+  color: var(--nx-primary);
+}
+
+.nx-table-footer {
+  padding: 14px 20px;
+  border-top: 1px solid #eef2f6;
+  background-color: #ffffff;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.nx-table-info {
+  font-size: 13.5px;
+  color: var(--nx-text-muted);
+  margin: 0;
+  font-weight: 400;
+}
+
+.nx-table-pagination {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.nx-table-pagination .page-item .page-link {
+  min-width: 36px;
+  height: 36px;
+  padding: 0 10px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 13px;
+  font-weight: 500;
+  color: #475569;
+  background-color: #ffffff;
+  border: 1px solid var(--nx-border);
+  border-radius: var(--nx-radius);
+  cursor: pointer;
+  user-select: none;
+  transition: all 0.15s ease;
+}
+
+.nx-table-pagination .page-item .page-link:hover:not(.disabled) {
+  background-color: #f1f5f9;
+  border-color: #cbd5e1;
+  color: #1e293b;
+}
+
+.nx-table-pagination .page-item.active .page-link {
+  background-color: var(--nx-primary-soft);
+  border-color: var(--nx-primary-border);
+  color: var(--nx-primary);
+  font-weight: 700;
+}
+
+.nx-table-pagination .page-item.disabled .page-link {
+  background-color: #f8fafc;
+  border-color: #edf2f7;
+  color: #cbd5e1;
+  cursor: not-allowed;
+  opacity: 0.7;
+}
+
+/* ==========================================================================
+   7. BADGES Y ESTADOS
+   ========================================================================== */
+.badge {
+  font-weight: 600;
+  letter-spacing: 0.2px;
+  padding: 6px 12px;
+  border-radius: 6px;
+}
+
+.badge.bg-light {
+  background-color: #f1f5f9 !important;
+  color: #334155 !important;
+  border: 1px solid #e2e8f0;
+}
+
+.badge.bg-success {
+  background-color: #198754 !important;
+  color: #ffffff !important;
+}
+
+.badge.bg-warning {
+  background-color: #f59e0b !important;
+  color: #1f2937 !important;
+}
+
+.badge.bg-danger {
+  background-color: #dc2626 !important;
+  color: #ffffff !important;
+}
+
+/* ==========================================================================
+   8. ALERTAS Y MODALES
+   ========================================================================== */
+.modal-content {
+  border-radius: var(--nx-radius-lg);
+  border: none;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
+}
+
+.modal-header {
+  border-top-left-radius: var(--nx-radius-lg);
+  border-top-right-radius: var(--nx-radius-lg);
+  border-bottom: 1px solid var(--nx-border);
+  padding: 16px 20px;
+}
+
+.modal-footer {
+  border-bottom-left-radius: var(--nx-radius-lg);
+  border-bottom-right-radius: var(--nx-radius-lg);
+  border-top: 1px solid var(--nx-border);
+  padding: 16px 20px;
+}
