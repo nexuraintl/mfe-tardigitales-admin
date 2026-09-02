@@ -55,7 +55,7 @@
               }
             ],
             "styles": ["src/styles.css"],
-            "scripts": ["dist/nexura-layout/nx-admin-layout.js"]
+            "scripts": []
           },
           "configurations": {
             "production": {

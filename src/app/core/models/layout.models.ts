@@ -2,12 +2,13 @@ export interface MenuItem {
   id?: string;
   label: string;
   icon?: string;
+  iconClass?: string;
   path?: string;
   badge?: string;
-  badgeType?: 'success' | 'warning' | 'danger' | 'info' | 'neutral';
-  external?: boolean;
+  badgeClass?: string;
+  disabled?: boolean;
   children?: MenuItem[];
-  isOpen?: boolean;
+  expanded?: boolean;
 }
 
 export interface MenuSection {
@@ -26,24 +27,16 @@ export interface UserProfile {
 export interface AppTile {
   id: string;
   name: string;
+  color?: string;
   iconText?: string;
   iconClass?: string;
-  color?: 'blue' | 'green' | 'purple' | 'orange' | 'cyan' | 'gray' | 'dark';
   path?: string;
   url?: string;
   active?: boolean;
 }
 
-export interface SettingsOption {
-  id: string;
-  label: string;
-  icon?: string;
-}
-
 export interface PrimaryAction {
   label: string;
   icon?: string;
-  path?: string;
-  action?: string | (() => void);
-  color?: string;
+  action?: () => void;
 }

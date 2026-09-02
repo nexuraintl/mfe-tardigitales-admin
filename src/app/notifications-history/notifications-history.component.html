@@ -122,9 +122,9 @@
     </div>
   </div>
 
-  <!-- Tabla de Datos DataTables 2.3.1 -->
-  <div class="card shadow-sm border-0">
-    <div class="card-header bg-white py-3 border-bottom d-flex justify-content-between align-items-center flex-wrap gap-2">
+  <!-- Tabla de Datos 100% Nativa Angular -->
+  <div class="nx-table-card shadow-sm mb-4">
+    <div class="card-header bg-white py-3 px-3 border-bottom d-flex justify-content-between align-items-center flex-wrap gap-2">
       <div>
         <h5 class="card-title fw-bold mb-0 text-dark">
           <span class="fa fa-list-alt text-secondary me-2"></span> Registro de envíos
@@ -133,73 +133,206 @@
       </div>
 
       <div class="d-flex gap-2">
-        <button type="button" class="btn btn-outline-secondary px-3 py-2 fw-semibold" (click)="exportarCSV()">
+        <button type="button" class="btn btn-outline-secondary" (click)="exportarCSV()">
           <span class="fa fa-download me-1"></span> Exportar CSV
         </button>
       </div>
     </div>
 
-    <div class="p-3">
-      <div class="table-responsive" *ngIf="isTableReady">
-        <table id="tablaHistorial" class="table table-hover align-middle mb-0 w-100">
-          <thead class="table-light">
-            <tr>
-              <th scope="col" class="ps-3" style="width: 50px;">#</th>
-              <th scope="col">Título</th>
-              <th scope="col">Canal</th>
-              <th scope="col">Audiencia</th>
-              <th scope="col">Destinatarios</th>
-              <th scope="col">Fecha y hora</th>
-              <th scope="col">Estado</th>
-              <th scope="col">Creado por</th>
-              <th scope="col" class="text-end pe-3" data-orderable="false">Acciones</th>
-            </tr>
-          </thead>
-          <tbody id="historyTableBody">
-            <tr *ngFor="let item of notificaciones; let i = index; trackBy: trackByNotifId">
-              <td class="ps-3 text-muted small">{{ i + 1 }}</td>
-              <td>
-                <strong class="text-dark">{{ item.titulo }}</strong>
-              </td>
-              <td>
-                <span class="badge bg-light text-dark border">
-                  <span *ngIf="item.canal === 'Push'" class="fa fa-mobile text-primary me-1"></span>
-                  <span *ngIf="item.canal === 'Alerta estándar'" class="fa fa-bullhorn text-warning me-1"></span>
-                  <span *ngIf="item.canal === 'Notificación interna'" class="fa fa-bell text-info me-1"></span>
-                  {{ item.canal }}
-                </span>
-              </td>
-              <td>{{ item.audiencia }}</td>
-              <td>{{ item.destinatarios.toLocaleString('es-CO') }}</td>
-              <td class="text-muted small">{{ item.fecha }}</td>
-              <td>
-                <span 
-                  class="badge" 
-                  [ngClass]="{
-                    'bg-success': item.estado === 'Entregada',
-                    'bg-warning text-dark': item.estado === 'Programada',
-                    'bg-danger': item.estado === 'Fallida',
-                    'bg-secondary': item.estado === 'En proceso'
-                  }"
-                >
-                  {{ item.estado }}
-                </span>
-              </td>
-              <td class="text-muted small">{{ item.creadoPor }}</td>
-              <td class="text-end pe-3">
-                <button 
-                  type="button" 
-                  class="btn btn-outline-primary btn-sm" 
-                  title="Ver detalle"
-                  (click)="verDetalle(item)"
-                >
-                  <span class="fa fa-eye"></span>
-                </button>
-              </td>
-            </tr>
-          </tbody>
-        </table>
+    <!-- Barra de Herramientas: Buscador y Selector de Registros -->
+    <div class="nx-table-toolbar">
+      <div class="nx-table-search-wrap">
+        <input 
+          type="text" 
+          class="nx-table-search-input" 
+          placeholder="Escriba para filtrar..." 
+          [(ngModel)]="searchQuery" 
+          (ngModelChange)="onFilterChange()"
+        >
+        <button 
+          *ngIf="searchQuery" 
+          type="button" 
+          class="btn btn-sm btn-link text-muted position-absolute end-0 me-2 p-0 text-decoration-none"
+          (click)="searchQuery = ''; onFilterChange()"
+          title="Limpiar búsqueda"
+        >
+          <span class="fa fa-times"></span>
+        </button>
       </div>
+
+      <div class="nx-table-length">
+        <span>Mostrar</span>
+        <select class="nx-table-length-select" [ngModel]="pageSize" (ngModelChange)="cambiarTamanoPagina($event)">
+          <option *ngFor="let opt of pageSizeOptions" [value]="opt">{{ opt }}</option>
+        </select>
+        <span>registros</span>
+      </div>
+    </div>
+
+    <div class="table-responsive">
+      <table class="table table-hover align-middle mb-0 w-100">
+        <thead class="table-light">
+          <tr>
+            <th scope="col" class="ps-3 nx-sortable" style="width: 60px;" (click)="ordenarPor('id')">
+              #
+              <span class="fa nx-sort-icon" [ngClass]="{
+                'fa-sort': sortColumn !== 'id',
+                'fa-sort-asc': sortColumn === 'id' && sortDirection === 'asc',
+                'fa-sort-desc': sortColumn === 'id' && sortDirection === 'desc'
+              }"></span>
+            </th>
+            <th scope="col" class="nx-sortable" (click)="ordenarPor('titulo')">
+              Título
+              <span class="fa nx-sort-icon" [ngClass]="{
+                'fa-sort': sortColumn !== 'titulo',
+                'fa-sort-asc': sortColumn === 'titulo' && sortDirection === 'asc',
+                'fa-sort-desc': sortColumn === 'titulo' && sortDirection === 'desc'
+              }"></span>
+            </th>
+            <th scope="col" class="nx-sortable" (click)="ordenarPor('canal')">
+              Canal
+              <span class="fa nx-sort-icon" [ngClass]="{
+                'fa-sort': sortColumn !== 'canal',
+                'fa-sort-asc': sortColumn === 'canal' && sortDirection === 'asc',
+                'fa-sort-desc': sortColumn === 'canal' && sortDirection === 'desc'
+              }"></span>
+            </th>
+            <th scope="col" class="nx-sortable" (click)="ordenarPor('audiencia')">
+              Audiencia
+              <span class="fa nx-sort-icon" [ngClass]="{
+                'fa-sort': sortColumn !== 'audiencia',
+                'fa-sort-asc': sortColumn === 'audiencia' && sortDirection === 'asc',
+                'fa-sort-desc': sortColumn === 'audiencia' && sortDirection === 'desc'
+              }"></span>
+            </th>
+            <th scope="col" class="nx-sortable" (click)="ordenarPor('destinatarios')">
+              Destinatarios
+              <span class="fa nx-sort-icon" [ngClass]="{
+                'fa-sort': sortColumn !== 'destinatarios',
+                'fa-sort-asc': sortColumn === 'destinatarios' && sortDirection === 'asc',
+                'fa-sort-desc': sortColumn === 'destinatarios' && sortDirection === 'desc'
+              }"></span>
+            </th>
+            <th scope="col" class="nx-sortable" (click)="ordenarPor('fecha')">
+              Fecha y hora
+              <span class="fa nx-sort-icon" [ngClass]="{
+                'fa-sort': sortColumn !== 'fecha',
+                'fa-sort-asc': sortColumn === 'fecha' && sortDirection === 'asc',
+                'fa-sort-desc': sortColumn === 'fecha' && sortDirection === 'desc'
+              }"></span>
+            </th>
+            <th scope="col" class="nx-sortable" (click)="ordenarPor('estado')">
+              Estado
+              <span class="fa nx-sort-icon" [ngClass]="{
+                'fa-sort': sortColumn !== 'estado',
+                'fa-sort-asc': sortColumn === 'estado' && sortDirection === 'asc',
+                'fa-sort-desc': sortColumn === 'estado' && sortDirection === 'desc'
+              }"></span>
+            </th>
+            <th scope="col" class="nx-sortable" (click)="ordenarPor('creadoPor')">
+              Creado por
+              <span class="fa nx-sort-icon" [ngClass]="{
+                'fa-sort': sortColumn !== 'creadoPor',
+                'fa-sort-asc': sortColumn === 'creadoPor' && sortDirection === 'asc',
+                'fa-sort-desc': sortColumn === 'creadoPor' && sortDirection === 'desc'
+              }"></span>
+            </th>
+            <th scope="col" class="text-end pe-3" style="width: 80px;">Acciones</th>
+          </tr>
+        </thead>
+        <tbody id="historyTableBody">
+          <tr *ngFor="let item of pagedNotifications; trackBy: trackByNotifId">
+            <td class="ps-3 text-muted small">#{{ item.id }}</td>
+            <td>
+              <strong class="text-dark">{{ item.titulo }}</strong>
+            </td>
+            <td>
+              <span class="badge bg-light text-dark border">
+                <span *ngIf="item.canal === 'Push'" class="fa fa-mobile text-primary me-1"></span>
+                <span *ngIf="item.canal === 'Alerta estándar'" class="fa fa-bullhorn text-warning me-1"></span>
+                <span *ngIf="item.canal === 'Notificación interna'" class="fa fa-bell text-info me-1"></span>
+                {{ item.canal }}
+              </span>
+            </td>
+            <td>{{ item.audiencia }}</td>
+            <td>{{ item.destinatarios.toLocaleString('es-CO') }}</td>
+            <td class="text-muted small">{{ item.fecha }}</td>
+            <td>
+              <span 
+                class="badge" 
+                [ngClass]="{
+                  'bg-success': item.estado === 'Entregada',
+                  'bg-warning text-dark': item.estado === 'Programada',
+                  'bg-danger': item.estado === 'Fallida',
+                  'bg-secondary': item.estado === 'En proceso'
+                }"
+              >
+                {{ item.estado }}
+              </span>
+            </td>
+            <td class="text-muted small">{{ item.creadoPor }}</td>
+            <td class="text-end pe-3">
+              <button 
+                type="button" 
+                class="btn btn-outline-primary btn-sm" 
+                title="Ver detalle"
+                (click)="verDetalle(item)"
+              >
+                <span class="fa fa-eye"></span>
+              </button>
+            </td>
+          </tr>
+          <tr *ngIf="pagedNotifications.length === 0">
+            <td colspan="9" class="text-center py-4 text-muted">
+              <span class="fa fa-info-circle me-1"></span> No se encontraron notificaciones con los filtros seleccionados.
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Pie de Tabla con Paginación Nativa -->
+    <div class="nx-table-footer">
+      <div class="nx-table-info">
+        Mostrando {{ startRecord }} a {{ endRecord }} de {{ totalRecords }} registros
+        <span *ngIf="searchQuery || selectedChannel || selectedStatus || dateFrom || dateTo" class="text-muted">
+          (filtrado de {{ notificaciones.length }} totales)
+        </span>
+      </div>
+
+      <ul class="nx-table-pagination" *ngIf="totalPages > 1">
+        <li class="page-item" [class.disabled]="currentPage === 1">
+          <button type="button" class="page-link" (click)="cambiarPagina(1)" [disabled]="currentPage === 1" title="Primera página">
+            ««
+          </button>
+        </li>
+        <li class="page-item" [class.disabled]="currentPage === 1">
+          <button type="button" class="page-link" (click)="cambiarPagina(currentPage - 1)" [disabled]="currentPage === 1" title="Página anterior">
+            «
+          </button>
+        </li>
+
+        <li 
+          class="page-item" 
+          *ngFor="let p of pagesArray" 
+          [class.active]="p === currentPage"
+        >
+          <button type="button" class="page-link" (click)="cambiarPagina(p)">
+            {{ p }}
+          </button>
+        </li>
+
+        <li class="page-item" [class.disabled]="currentPage === totalPages">
+          <button type="button" class="page-link" (click)="cambiarPagina(currentPage + 1)" [disabled]="currentPage === totalPages" title="Página siguiente">
+            »
+          </button>
+        </li>
+        <li class="page-item" [class.disabled]="currentPage === totalPages">
+          <button type="button" class="page-link" (click)="cambiarPagina(totalPages)" [disabled]="currentPage === totalPages" title="Última página">
+            »»
+          </button>
+        </li>
+      </ul>
     </div>
   </div>
 
