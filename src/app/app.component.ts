@@ -69,7 +69,7 @@ export class App implements OnInit {
       name: 'Reportes y Analítica', 
       color: 'purple', 
       iconClass: 'fa fa-bar-chart', 
-      path: '/admin/reportes/metricas', 
+      path: '/admin/tardigitales/reportes/metricas', 
       active: false 
     }
   ];
