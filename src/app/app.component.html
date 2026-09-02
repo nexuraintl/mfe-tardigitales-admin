@@ -1,27 +1,31 @@
-<nx-admin-layout
+<!-- 1. Header Web Component -->
+<nx-admin-header
   [appTitle]="'Tarjetas Digitales'"
-  [activePath]="currentUrl"
-  [menuSections]="menuSections"
   [currentUser]="currentUser"
   [appGrid]="appGrid"
-  [primaryAction]="primaryAction"
   (nx-navigate)="onNavigate($any($event))"
   (nx-app-change)="onAppChange($any($event))"
-  (nx-primary-action)="onPrimaryAction($any($event))"
   (nx-profile-action)="onProfileAction($any($event))">
-  
-  <div class="container-fluid p-4">
-    <!-- BARRA ESTRUCTURAL GLOBAL DE NAVEGACION Y ACCIONES (LAYOUT) -->
-    <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-3 pb-3 border-bottom">
-      <div class="d-flex align-items-center gap-3">
-        <button type="button" class="nx-back-btn" (click)="onBack()" title="Volver atrás" aria-label="Volver atrás">
-          <i class="fa fa-arrow-left"></i>
-        </button>
-        <h1 class="nx-view-title">{{ pageTitle }}</h1>
-      </div>
-      
-      <!-- BOTONES DE ACCION DE LA VISTA (OPCIONALES Y DINÁMICOS) -->
-      <div class="d-flex gap-2 align-items-center" *ngIf="viewActions && viewActions.length > 0">
+</nx-admin-header>
+
+<div class="main-container" style="display: flex; min-height: calc(100vh - 64px); background-color: #f8f9fa;">
+  <!-- 2. Sidebar de navegación -->
+  <nx-admin-mod-sidebar
+    [menuSections]="menuSections"
+    [activePath]="currentUrl"
+    [primaryAction]="primaryAction"
+    (nx-navigate)="onNavigate($any($event))"
+    (nx-primary-action)="onPrimaryAction($any($event))">
+  </nx-admin-mod-sidebar>
+
+  <!-- 3. Área principal de contenido -->
+  <main class="content-area" style="flex: 1; min-width: 0; display: flex; flex-direction: column;">
+    <!-- Barra de opciones / Título de vista y botones dinámicos -->
+    <nx-admin-mod-options
+      [pageTitle]="pageTitle"
+      [showBackButton]="true"
+      (nx-back)="onBack()">
+      <div slot="actions" class="d-flex gap-2 align-items-center" *ngIf="viewActions && viewActions.length > 0">
         <button 
           *ngFor="let act of viewActions"
           type="button" 
@@ -31,10 +35,16 @@
           {{ act.label }}
         </button>
       </div>
-    </div>
+    </nx-admin-mod-options>
 
-    <!-- Contenido Modular Puro del MFE -->
-    <router-outlet (activate)="onRouteActivate($event)"></router-outlet>
-  </div>
+    <!-- 4. Contenedor de contenido donde se proyecta el router de Angular -->
+    <nx-admin-mod-content slot="content" style="flex: 1;">
+      <div class="container-fluid p-4">
+        <router-outlet (activate)="onRouteActivate($event)"></router-outlet>
+      </div>
+    </nx-admin-mod-content>
+  </main>
+</div>
 
-</nx-admin-layout>
+<!-- 5. Footer Web Component -->
+<nx-admin-footer [version]="'Versión 1.0.0'"></nx-admin-footer>

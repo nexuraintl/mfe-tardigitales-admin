@@ -54,14 +54,24 @@ export class App implements OnInit {
   // Acción principal destacada sobre el sidebar (configurable y opcional por vista)
   primaryAction: PrimaryAction | null = null;
 
-  // Configuración de aplicaciones globales en el topbar
+  // Configuración de módulos en el menú de aplicaciones del topbar
   appGrid: AppTile[] = [
-    { id: 'tarjetas', name: 'Tarjetas', color: 'blue', iconClass: 'fa fa-id-card', path: '/tarjetas-contadores', active: true },
-    { id: 'sociedades', name: 'Sociedades', color: 'cyan', iconClass: 'fa fa-building-o', path: '/sociedades' },
-    { id: 'notificaciones', name: 'Notificaciones', color: 'orange', iconClass: 'fa fa-bell', path: '/crear-notificacion' },
-    { id: 'tramites', name: 'Trámites', color: 'green', iconClass: 'fa fa-tasks', path: '/crud' },
-    { id: 'reportes', name: 'Reportes', color: 'purple', iconClass: 'fa fa-bar-chart', path: '/reportes' },
-    { id: 'validador', name: 'Validador QR', color: 'dark', iconClass: 'fa fa-qrcode', path: '/validador-qr' }
+    { 
+      id: 'tarjetas', 
+      name: 'Tarjetas Digitales', 
+      color: 'blue', 
+      iconClass: 'fa fa-id-card', 
+      path: '/admin/tardigitales/crud', 
+      active: true 
+    },
+    { 
+      id: 'reportes', 
+      name: 'Reportes y Analítica', 
+      color: 'purple', 
+      iconClass: 'fa fa-bar-chart', 
+      path: '/admin/reportes/metricas', 
+      active: false 
+    }
   ];
 
   menuSections: MenuSection[] = [
@@ -92,7 +102,6 @@ export class App implements OnInit {
     {
       sectionTitle: 'Administración',
       items: [
-        { label: 'Reportes', icon: 'fa fa-bar-chart', path: '/reportes' },
         { label: 'Certificados', icon: 'fa fa-certificate', path: '/certificados' },
         { label: 'Branding', icon: 'fa fa-paint-brush', path: '/branding' },
         { label: 'Validador QR', icon: 'fa fa-qrcode', path: '/validador-qr' },
@@ -245,6 +254,19 @@ export class App implements OnInit {
 
   navegarA(path: string): void {
     if (!path) return;
+    if (path.startsWith('/admin/reportes') || path.startsWith('http')) {
+      window.location.href = path;
+      return;
+    }
+    if (path.startsWith('/admin/tardigitales/')) {
+      const internalPath = path.replace('/admin/tardigitales', '') || '/crud';
+      this.currentUrl = internalPath;
+      this.updatePageTitle(internalPath);
+      this.updateViewActions(internalPath);
+      this.cdr.detectChanges();
+      this.router.navigateByUrl(internalPath);
+      return;
+    }
     this.currentUrl = path;
     this.updatePageTitle(path);
     this.updateViewActions(path);
