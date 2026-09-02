@@ -1,4 +1,4 @@
-import { Component, OnInit, OnDestroy, AfterViewInit, ChangeDetectorRef } from '@angular/core';
+import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { HttpClient } from '@angular/common/http';
@@ -22,18 +22,20 @@ export interface Tramite {
   templateUrl: './tramites-crud.component.html',
   styleUrl: './tramites-crud.component.css'
 })
-export class TramitesCrudComponent implements OnInit, OnDestroy, AfterViewInit {
+export class TramitesCrudComponent implements OnInit {
   tramites: Tramite[] = [];
   loading = false;
   currentError: AppError | null = null;
   successMsg: string = '';
   clientId: number = CLIENT_ID;
-  private dtInstance: any = null;
 
-  // Filtros
-  filtroTexto = '';
-  filtroTipo = '';
-  filtroEstado = '';
+  // Búsqueda y Paginación Nativa en Angular
+  searchQuery = '';
+  currentPage = 1;
+  pageSize = 10;
+  pageSizeOptions = [5, 10, 25, 50];
+  sortColumn: keyof Tramite | 'id' = 'id';
+  sortDirection: 'asc' | 'desc' = 'desc';
 
   // Modal Crear/Editar
   modalOpen = false;
@@ -45,8 +47,6 @@ export class TramitesCrudComponent implements OnInit, OnDestroy, AfterViewInit {
   deleteModalOpen = false;
   tramiteToDeleteId: number | null = null;
 
-  isTableReady = true;
-
   constructor(
     private http: HttpClient,
     private cdr: ChangeDetectorRef,
@@ -57,111 +57,101 @@ export class TramitesCrudComponent implements OnInit, OnDestroy, AfterViewInit {
     this.obtenerTramites();
   }
 
-  ngAfterViewInit(): void {
-    this.ensureDataTablesLoaded();
+  // Lógica Reactiva de Filtrado, Ordenamiento y Paginación
+  get filteredTramites(): Tramite[] {
+    if (!this.searchQuery) return this.tramites;
+    const q = this.searchQuery.toLowerCase().trim();
+    return this.tramites.filter(t =>
+      (t.id && t.id.toString().includes(q)) ||
+      (t.nombre && t.nombre.toLowerCase().includes(q)) ||
+      (t.tipo && t.tipo.toLowerCase().includes(q)) ||
+      (t.estado && t.estado.toLowerCase().includes(q)) ||
+      (t.descripcion && t.descripcion.toLowerCase().includes(q)) ||
+      (t.costo !== undefined && t.costo.toString().includes(q))
+    );
   }
 
-  ngOnDestroy(): void {
-    this.destroyDataTable();
-  }
+  get sortedTramites(): Tramite[] {
+    const list = [...this.filteredTramites];
+    const col = this.sortColumn;
+    const dir = this.sortDirection === 'asc' ? 1 : -1;
 
-  private ensureDataTablesLoaded(): Promise<void> {
-    if ((window as any).DataTable) {
-      return Promise.resolve();
-    }
-    return new Promise((resolve) => {
-      if (document.querySelector('script[src*="datatables.net/2.3.1/js/dataTables.min.js"]')) {
-        const timer = setInterval(() => {
-          if ((window as any).DataTable) {
-            clearInterval(timer);
-            resolve();
-          }
-        }, 50);
-        return;
+    return list.sort((a, b) => {
+      const valA = (a as any)[col];
+      const valB = (b as any)[col];
+
+      if (valA === valB) return 0;
+      if (valA === undefined || valA === null) return 1 * dir;
+      if (valB === undefined || valB === null) return -1 * dir;
+
+      if (typeof valA === 'number' && typeof valB === 'number') {
+        return (valA - valB) * dir;
       }
-      const jqScript = document.createElement('script');
-      jqScript.src = 'https://code.jquery.com/jquery-3.7.1.min.js';
-      jqScript.onload = () => {
-        const dtScript = document.createElement('script');
-        dtScript.src = 'https://cdn.datatables.net/2.3.1/js/dataTables.min.js';
-        dtScript.onload = () => {
-          const dtBs5Script = document.createElement('script');
-          dtBs5Script.src = 'https://cdn.datatables.net/2.3.1/js/dataTables.bootstrap5.min.js';
-          dtBs5Script.onload = () => resolve();
-          document.head.appendChild(dtBs5Script);
-        };
-        document.head.appendChild(dtScript);
-      };
-      document.head.appendChild(jqScript);
+      return String(valA).localeCompare(String(valB), 'es', { numeric: true }) * dir;
     });
   }
 
-  private destroyDataTable(): void {
-    if (this.dtInstance) {
-      try {
-        this.dtInstance.destroy();
-      } catch (e) {}
-      this.dtInstance = null;
+  get pagedTramites(): Tramite[] {
+    const start = (this.currentPage - 1) * this.pageSize;
+    return this.sortedTramites.slice(start, start + this.pageSize);
+  }
+
+  get totalPages(): number {
+    return Math.ceil(this.filteredTramites.length / this.pageSize) || 1;
+  }
+
+  get totalRecords(): number {
+    return this.filteredTramites.length;
+  }
+
+  get startRecord(): number {
+    if (this.totalRecords === 0) return 0;
+    return (this.currentPage - 1) * this.pageSize + 1;
+  }
+
+  get endRecord(): number {
+    return Math.min(this.currentPage * this.pageSize, this.totalRecords);
+  }
+
+  get pagesArray(): number[] {
+    const pages: number[] = [];
+    const maxVisible = 5;
+    let start = Math.max(1, this.currentPage - Math.floor(maxVisible / 2));
+    let end = Math.min(this.totalPages, start + maxVisible - 1);
+
+    if (end - start + 1 < maxVisible) {
+      start = Math.max(1, end - maxVisible + 1);
+    }
+
+    for (let i = start; i <= end; i++) {
+      pages.push(i);
+    }
+    return pages;
+  }
+
+  ordenarPor(columna: keyof Tramite | 'id'): void {
+    if (this.sortColumn === columna) {
+      this.sortDirection = this.sortDirection === 'asc' ? 'desc' : 'asc';
+    } else {
+      this.sortColumn = columna;
+      this.sortDirection = 'desc';
+    }
+    this.currentPage = 1;
+  }
+
+  cambiarPagina(pagina: number): void {
+    if (pagina >= 1 && pagina <= this.totalPages) {
+      this.currentPage = pagina;
     }
   }
 
-  initDataTable(): void {
-    if (!this.isTableReady) return;
-    this.ensureDataTablesLoaded().then(() => {
-      setTimeout(() => {
-        const tableEl = document.getElementById('tablaTramites');
-        if (!tableEl) return;
+  cambiarTamanoPagina(nuevoTamano: number): void {
+    this.pageSize = Number(nuevoTamano);
+    this.currentPage = 1;
+  }
 
-        const dtConstructor = (window as any).DataTable;
-        if (typeof dtConstructor === 'function') {
-          this.dtInstance = new dtConstructor('#tablaTramites', {
-            pageLength: 10,
-            responsive: true,
-            columnDefs: [
-              { targets: 0, type: 'num' }
-            ],
-            order: [[0, 'desc']], // Ordenar por ID descendente
-            language: {
-              search: "",
-              searchPlaceholder: "Escriba para filtrar...",
-              lengthMenu: "Mostrar _MENU_ registros",
-              info: "Mostrando _START_ a _END_ de _TOTAL_ registros",
-              infoEmpty: "Mostrando 0 a 0 de 0 registros",
-              infoFiltered: "(filtrado de _MAX_ registros totales)",
-              zeroRecords: "No se encontraron trámites registrados",
-              paginate: {
-                first: "««",
-                last: "»»",
-                next: "»",
-                previous: "«"
-              }
-            },
-            layout: {
-              topStart: 'search',
-              topEnd: 'pageLength',
-              bottomStart: 'info',
-              bottomEnd: 'paging'
-            }
-          });
-
-          // Agregar botón Buscar al lado del input de búsqueda
-          const searchContainer = tableEl.closest('.dt-container')?.querySelector('.dt-search');
-          if (searchContainer && !searchContainer.querySelector('.btn-dt-search')) {
-            const btn = document.createElement('button');
-            btn.type = 'button';
-            btn.className = 'btn btn-outline-primary btn-sm btn-dt-search ms-2';
-            btn.innerHTML = '<span class="fa fa-search me-1"></span> Buscar';
-            btn.onclick = () => {
-              const input = searchContainer.querySelector('input') as HTMLInputElement;
-              if (input && this.dtInstance) {
-                this.dtInstance.search(input.value).draw();
-              }
-            };
-            searchContainer.appendChild(btn);
-          }
-        }
-      }, 50);
-    });
+  onSearchChange(): void {
+    this.currentPage = 1;
   }
 
   getEmptyTramite(): Tramite {
@@ -179,28 +169,19 @@ export class TramitesCrudComponent implements OnInit, OnDestroy, AfterViewInit {
   }
 
   obtenerTramites(): void {
-    this.destroyDataTable();
-    this.isTableReady = false;
     this.loading = true;
     this.currentError = null;
-    this.cdr.detectChanges();
-
     const ts = new Date().getTime();
     this.http.get<Tramite[]>(`${API_BASE}/tramites/list?client_id=${this.clientId}&_t=${ts}`)
       .subscribe({
         next: (data) => {
-          this.tramites = [...(data || [])];
+          this.tramites = data || [];
           this.loading = false;
-          this.isTableReady = true;
           this.cdr.detectChanges();
-          setTimeout(() => {
-            this.initDataTable();
-          }, 60);
         },
         error: (err) => {
           this.currentError = this.errorHandler.parseError(err, 'MS_3810_TRAMITES_GET', `${API_BASE}/tramites/list`);
           this.loading = false;
-          this.isTableReady = true;
           this.cdr.detectChanges();
         }
       });
@@ -222,7 +203,6 @@ export class TramitesCrudComponent implements OnInit, OnDestroy, AfterViewInit {
     this.modalOpen = true;
     this.cdr.detectChanges();
 
-    // Consultar información fresca y actualizada directamente del servidor
     this.http.get<Tramite>(`${API_BASE}/tramites/get/${tramite.id}?client_id=${this.clientId}`)
       .subscribe({
         next: (freshData) => {
@@ -257,7 +237,6 @@ export class TramitesCrudComponent implements OnInit, OnDestroy, AfterViewInit {
     this.formError = '';
 
     if (this.isEditing && this.formTramite.id) {
-      // Actualizar Trámite (PUT /tramites/update/{id}?client_id=...)
       this.http.put<Tramite>(`${API_BASE}/tramites/update/${this.formTramite.id}?client_id=${this.clientId}`, this.formTramite)
         .subscribe({
           next: () => {
@@ -276,7 +255,6 @@ export class TramitesCrudComponent implements OnInit, OnDestroy, AfterViewInit {
           }
         });
     } else {
-      // Crear Trámite (POST /tramites/create?client_id=...)
       this.http.post<Tramite>(`${API_BASE}/tramites/create?client_id=${this.clientId}`, this.formTramite)
         .subscribe({
           next: () => {
@@ -330,23 +308,5 @@ export class TramitesCrudComponent implements OnInit, OnDestroy, AfterViewInit {
           }
         });
     }
-  }
-
-  get tramitesFiltrados(): Tramite[] {
-    return this.tramites.filter(t => {
-      const matchTexto = !this.filtroTexto || 
-        t.nombre.toLowerCase().includes(this.filtroTexto.toLowerCase()) ||
-        (t.descripcion && t.descripcion.toLowerCase().includes(this.filtroTexto.toLowerCase()));
-      const matchTipo = !this.filtroTipo || t.tipo === this.filtroTipo;
-      const matchEstado = !this.filtroEstado || t.estado === this.filtroEstado;
-      return matchTexto && matchTipo && matchEstado;
-    });
-  }
-
-  limpiarFiltros(): void {
-    this.filtroTexto = '';
-    this.filtroTipo = '';
-    this.filtroEstado = '';
-    this.cdr.detectChanges();
   }
 }

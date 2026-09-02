@@ -2,7 +2,7 @@ import { Component, CUSTOM_ELEMENTS_SCHEMA, OnInit, inject, ChangeDetectorRef } 
 import { CommonModule } from '@angular/common';
 import { Router, RouterOutlet, NavigationEnd } from '@angular/router';
 import { filter } from 'rxjs';
-import { MenuSection, UserProfile, AppTile, PrimaryAction } from './shared/nexura-layout/types';
+import { MenuSection, UserProfile, AppTile, PrimaryAction } from './core/models/layout.models';
 
 export interface HeaderAction {
   id: string;
@@ -146,14 +146,14 @@ export class App implements OnInit {
           id: 'exportar-csv',
           label: 'Exportar CSV',
           icon: 'fa fa-download',
-          btnClass: 'btn btn-outline-secondary px-3 py-2 fw-semibold',
+          btnClass: 'btn btn-outline-secondary',
           action: () => this.activeComponent?.exportarCSV?.()
         },
         {
           id: 'emision-masiva',
           label: 'Emisión masiva',
           icon: 'fa fa-file-excel-o',
-          btnClass: 'btn btn-outline-secondary px-3 py-2 fw-semibold',
+          btnClass: 'btn btn-outline-secondary',
           action: () => this.activeComponent?.abrirEmisionMasiva?.()
         }
       ];
@@ -168,14 +168,14 @@ export class App implements OnInit {
           id: 'exportar-csv',
           label: 'Exportar CSV',
           icon: 'fa fa-download',
-          btnClass: 'btn btn-outline-secondary px-3 py-2 fw-semibold',
+          btnClass: 'btn btn-outline-secondary',
           action: () => this.activeComponent?.exportarCSV?.()
         },
         {
           id: 'emision-masiva',
           label: 'Emisión masiva',
           icon: 'fa fa-file-excel-o',
-          btnClass: 'btn btn-outline-secondary px-3 py-2 fw-semibold',
+          btnClass: 'btn btn-outline-secondary',
           action: () => this.activeComponent?.abrirEmisionMasiva?.()
         }
       ];
@@ -186,14 +186,14 @@ export class App implements OnInit {
           id: 'actualizar-tramites',
           label: 'Actualizar',
           icon: 'fa fa-refresh',
-          btnClass: 'btn btn-outline-secondary px-3 py-2 fw-semibold',
+          btnClass: 'btn btn-outline-secondary',
           action: () => this.activeComponent?.obtenerTramites?.()
         },
         {
           id: 'nuevo-tramite',
           label: 'Nuevo trámite',
           icon: 'fa fa-plus',
-          btnClass: 'btn btn-primary px-3 py-2 fw-semibold',
+          btnClass: 'btn btn-primary',
           action: () => this.activeComponent?.abrirCrear?.()
         }
       ];
@@ -204,14 +204,14 @@ export class App implements OnInit {
           id: 'exportar-csv',
           label: 'Exportar CSV',
           icon: 'fa fa-download',
-          btnClass: 'btn btn-outline-secondary px-3 py-2 fw-semibold',
+          btnClass: 'btn btn-outline-secondary',
           action: () => this.activeComponent?.exportarCSV?.()
         },
         {
           id: 'nueva-notificacion',
           label: 'Nueva notificación',
           icon: 'fa fa-plus',
-          btnClass: 'btn btn-primary px-3 py-2 fw-semibold',
+          btnClass: 'btn btn-primary',
           action: () => this.navegarA('/crear-notificacion')
         }
       ];
@@ -222,7 +222,7 @@ export class App implements OnInit {
           id: 'ver-historial',
           label: 'Ver historial',
           icon: 'fa fa-history',
-          btnClass: 'btn btn-outline-secondary px-3 py-2 fw-semibold',
+          btnClass: 'btn btn-outline-secondary',
           action: () => this.navegarA('/historial')
         }
       ];
@@ -233,7 +233,7 @@ export class App implements OnInit {
           id: 'exportar-csv',
           label: 'Exportar CSV',
           icon: 'fa fa-download',
-          btnClass: 'btn btn-outline-secondary px-3 py-2 fw-semibold',
+          btnClass: 'btn btn-outline-secondary',
           action: () => this.activeComponent?.exportarCSV?.()
         }
       ];
