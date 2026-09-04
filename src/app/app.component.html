@@ -24,17 +24,9 @@
     <nx-admin-mod-options
       [pageTitle]="pageTitle"
       [showBackButton]="true"
+      [actions]="viewActions"
+      (nx-action)="ejecutarAccion($any($event).detail)"
       (nx-back)="onBack()">
-      <div slot="actions" class="d-flex gap-2 align-items-center" *ngIf="viewActions && viewActions.length > 0">
-        <button 
-          *ngFor="let act of viewActions"
-          type="button" 
-          [ngClass]="act.btnClass || 'btn btn-primary'" 
-          (click)="ejecutarAccion(act)">
-          <span *ngIf="act.icon" [class]="act.icon + ' me-1'"></span>
-          {{ act.label }}
-        </button>
-      </div>
     </nx-admin-mod-options>
 
     <!-- 4. Contenedor de contenido donde se proyecta el router de Angular -->
