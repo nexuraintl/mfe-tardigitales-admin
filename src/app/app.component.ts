@@ -28,6 +28,7 @@ export class App implements OnInit {
   pageTitle = 'Tarjeta Digital para Contadores';
   activeComponent: any = null;
   viewActions: HeaderAction[] = [];
+  sidebarCollapsed = false;
 
   private routeTitles: { [key: string]: string } = {
     '/tarjetas-contadores': 'Tarjeta Digital para Contadores',
@@ -282,6 +283,11 @@ export class App implements OnInit {
   }
 
   // Manejo de eventos emitidos por el Web Component de Lit
+  onToggleSidebar(): void {
+    this.sidebarCollapsed = !this.sidebarCollapsed;
+    this.cdr.detectChanges();
+  }
+
   onNavigate(event: CustomEvent): void {
     const path = event.detail?.path;
     if (path) {

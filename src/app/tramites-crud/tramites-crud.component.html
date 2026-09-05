@@ -203,8 +203,19 @@
 </div>
 
 <!-- Modal de Formulario CRUD (Bootstrap 5.3) -->
-<div class="modal fade show d-block" tabindex="-1" *ngIf="modalOpen" role="dialog" aria-modal="true">
-  <div class="modal-dialog modal-dialog-centered modal-lg">
+<div 
+  class="modal fade show d-block" 
+  tabindex="-1" 
+  *ngIf="modalOpen" 
+  role="dialog" 
+  aria-modal="true"
+  (click)="onBackdropClick('form')"
+>
+  <div 
+    class="modal-dialog modal-dialog-centered modal-lg"
+    [class.modal-static-shake]="modalShakeActive"
+    (click)="$event.stopPropagation()"
+  >
     <div class="modal-content shadow border-0">
       
       <div class="modal-header bg-light border-bottom">
@@ -301,12 +312,23 @@
 </div>
 
 <!-- Modal de Confirmación de Eliminación (Bootstrap 5.3) -->
-<div class="modal fade show d-block" tabindex="-1" *ngIf="deleteModalOpen" role="dialog" aria-modal="true">
-  <div class="modal-dialog modal-dialog-centered">
+<div 
+  class="modal fade show d-block" 
+  tabindex="-1" 
+  *ngIf="deleteModalOpen" 
+  role="dialog" 
+  aria-modal="true"
+  (click)="onBackdropClick('delete')"
+>
+  <div 
+    class="modal-dialog modal-dialog-centered"
+    [class.modal-static-shake]="modalShakeActive"
+    (click)="$event.stopPropagation()"
+  >
     <div class="modal-content shadow border-0">
       <div class="modal-header bg-danger text-white">
-        <h5 class="modal-title fw-bold">
-          <span class="fa fa-exclamation-triangle me-1"></span> Eliminar Registro
+        <h5 class="modal-title fw-bold text-white mb-0">
+          <span class="fa fa-exclamation-triangle me-2"></span>Eliminar Registro
         </h5>
         <button type="button" class="btn-close btn-close-white" (click)="cerrarConfirmarEliminar()" aria-label="Cerrar"></button>
       </div>

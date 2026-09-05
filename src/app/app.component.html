@@ -3,6 +3,7 @@
   [appTitle]="'Tarjetas Digitales'"
   [currentUser]="currentUser"
   [appGrid]="appGrid"
+  (nx-toggle-sidebar)="onToggleSidebar()"
   (nx-navigate)="onNavigate($any($event))"
   (nx-app-change)="onAppChange($any($event))"
   (nx-profile-action)="onProfileAction($any($event))">
@@ -14,6 +15,8 @@
     [menuSections]="menuSections"
     [activePath]="currentUrl"
     [primaryAction]="primaryAction"
+    [collapsed]="sidebarCollapsed"
+    (nx-sidebar-change)="sidebarCollapsed = $any($event).detail?.collapsed"
     (nx-navigate)="onNavigate($any($event))"
     (nx-primary-action)="onPrimaryAction($any($event))">
   </nx-admin-mod-sidebar>
@@ -35,8 +38,8 @@
         <router-outlet (activate)="onRouteActivate($event)"></router-outlet>
       </div>
     </nx-admin-mod-content>
+
+    <!-- 5. Footer Web Component (Dentro del área de contenido para no cortar el sidebar) -->
+    <nx-admin-footer [version]="'Versión 1.0.0'"></nx-admin-footer>
   </main>
 </div>
-
-<!-- 5. Footer Web Component -->
-<nx-admin-footer [version]="'Versión 1.0.0'"></nx-admin-footer>

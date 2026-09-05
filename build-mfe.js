@@ -22,9 +22,14 @@ async function buildMfe() {
     // Leer archivos del directorio de origen
     const files = fs.readdirSync(srcDir);
 
-    // Filtrar archivos JS (excluyendo sourcemaps y licencias si existen)
-    // El orden de concatenación ideal en Angular suele ser polyfills -> main
-    const jsFiles = files.filter(f => f.endsWith('.js') && !f.endsWith('.map') && !f.includes('txt'));
+    // Filtrar archivos JS propios de Angular (excluyendo layout bundles, sourcemaps y licencias)
+    const jsFiles = files.filter(f => 
+      f.endsWith('.js') && 
+      !f.endsWith('.map') && 
+      !f.includes('txt') && 
+      !f.startsWith('layout') && 
+      !f.startsWith('nx-admin-layout')
+    );
     
     // Ordenar para asegurar que polyfills vaya primero
     jsFiles.sort((a, b) => {
@@ -47,8 +52,13 @@ async function buildMfe() {
     fs.writeFileSync(outputJsPath, concatenatedJs, 'utf8');
     console.log(`¡JS unificado creado con éxito en: ${outputJsPath}!`);
 
-    // Concatenar o copiar estilos CSS
-    const cssFiles = files.filter(f => f.endsWith('.css') && !f.endsWith('.map'));
+    // Concatenar estilos CSS de Angular (excluyendo estilos independientes de layout)
+    const cssFiles = files.filter(f => 
+      f.endsWith('.css') && 
+      !f.endsWith('.map') && 
+      !f.startsWith('layout') && 
+      !f.startsWith('nexura-theme')
+    );
     console.log('Archivos CSS detectados:', cssFiles);
 
     let concatenatedCss = '';
