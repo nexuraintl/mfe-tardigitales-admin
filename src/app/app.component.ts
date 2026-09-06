@@ -113,6 +113,9 @@ export class App implements OnInit {
   ];
 
   ngOnInit(): void {
+    if (typeof window !== 'undefined' && window.innerWidth <= 992) {
+      this.sidebarCollapsed = true;
+    }
     this.currentUrl = (typeof window !== 'undefined' && window.location.pathname) ? window.location.pathname : this.router.url;
     this.updatePageTitle(this.currentUrl);
     this.updateViewActions(this.currentUrl);
