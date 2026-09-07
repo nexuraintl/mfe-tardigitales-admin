@@ -11,3 +11,16 @@
  */
 
 /* Escribe tus reglas CSS personalizadas para este módulo aquí abajo */
+
+/* Centrado garantizado de modales Bootstrap en todas las resoluciones */
+.modal-dialog {
+  margin-left: auto !important;
+  margin-right: auto !important;
+}
+
+@media (max-width: 767px) {
+  .modal-dialog {
+    margin: 12px auto !important;
+    max-width: calc(100% - 24px) !important;
+  }
+}
