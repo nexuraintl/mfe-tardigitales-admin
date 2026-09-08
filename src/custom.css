@@ -11,3 +11,57 @@
  */
 
 /* Escribe tus reglas CSS personalizadas para este módulo aquí abajo */
+
+/* Centrado garantizado de modales Bootstrap en todas las resoluciones */
+.modal-dialog {
+  margin-left: auto !important;
+  margin-right: auto !important;
+}
+
+@media (max-width: 767px) {
+  .modal-dialog {
+    margin: 12px auto !important;
+    max-width: calc(100% - 24px) !important;
+  }
+}
+
+/* Tooltips en tablas: orientados hacia arriba y anclados al extremo derecho */
+.table td [data-nx-tooltip]:not([data-nx-tooltip-pos])::after,
+.table td [data-tooltip]:not([data-tooltip-pos])::after {
+  bottom: auto !important;
+  top: -30px !important;
+  transform: translateX(-50%) translateY(2px);
+}
+
+.table td [data-nx-tooltip]:not([data-nx-tooltip-pos]):hover::after,
+.table td [data-tooltip]:not([data-tooltip-pos]):hover::after {
+  display: block;
+  transform: translateX(-50%) translateY(0);
+}
+
+.table td:last-child [data-nx-tooltip]:not([data-nx-tooltip-pos])::after,
+.table td:last-child [data-tooltip]:not([data-tooltip-pos])::after,
+.table td:last-child [data-nx-tooltip-pos="top"]::after,
+.table td:last-child [data-tooltip-pos="top"]::after,
+.table td:last-child .btn-group > :last-child [data-tooltip]::after,
+.table td:last-child .btn-group > :last-child [data-nx-tooltip]::after {
+  bottom: auto !important;
+  top: -30px !important;
+  left: auto !important;
+  right: 0 !important;
+  transform: translateY(2px);
+}
+
+.table td:last-child [data-nx-tooltip]:not([data-nx-tooltip-pos]):hover::after,
+.table td:last-child [data-tooltip]:not([data-tooltip-pos]):hover::after,
+.table td:last-child [data-nx-tooltip-pos="top"]:hover::after,
+.table td:last-child [data-tooltip-pos="top"]:hover::after,
+.table td:last-child .btn-group > :last-child [data-tooltip]:hover::after,
+.table td:last-child .btn-group > :last-child [data-nx-tooltip]:hover::after,
+.table td:last-child [data-nx-tooltip]:not([data-nx-tooltip-pos]):focus-visible::after,
+.table td:last-child [data-tooltip]:not([data-tooltip-pos]):focus-visible::after,
+.table td:last-child [data-nx-tooltip-pos="top"]:focus-visible::after,
+.table td:last-child [data-tooltip-pos="top"]:focus-visible::after {
+  display: block;
+  transform: translateY(0);
+}
