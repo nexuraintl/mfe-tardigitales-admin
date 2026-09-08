@@ -314,20 +314,40 @@ a {\r
   transform: translateY(0);\r
 }\r
 \r
-/* Alineaci\xF3n segura en extremos derechos de tablas para evitar desborde */\r
+/* Tooltips en tablas: siempre posicionados arriba para no desbordar en las \xFAltimas filas */\r
+.table td [data-nx-tooltip]:not([data-nx-tooltip-pos])::after,\r
+.table td [data-tooltip]:not([data-tooltip-pos])::after {\r
+  bottom: auto !important;\r
+  top: -30px !important;\r
+  transform: translateX(-50%) translateY(2px);\r
+}\r
+\r
+.table td [data-nx-tooltip]:not([data-nx-tooltip-pos]):hover::after,\r
+.table td [data-tooltip]:not([data-tooltip-pos]):hover::after {\r
+  display: block;\r
+  transform: translateX(-50%) translateY(0);\r
+}\r
+\r
+/* Alineaci\xF3n segura en extremos derechos de tablas para evitar desborde horizontal */\r
 .table td:last-child [data-nx-tooltip]:not([data-nx-tooltip-pos])::after,\r
 .table td:last-child [data-tooltip]:not([data-tooltip-pos])::after,\r
 .table td:last-child [data-nx-tooltip-pos="top"]::after,\r
-.table td:last-child [data-tooltip-pos="top"]::after {\r
-  left: auto;\r
-  right: 0;\r
-  transform: translateY(4px);\r
+.table td:last-child [data-tooltip-pos="top"]::after,\r
+.table td:last-child .btn-group > :last-child [data-tooltip]::after,\r
+.table td:last-child .btn-group > :last-child [data-nx-tooltip]::after {\r
+  bottom: auto !important;\r
+  top: -30px !important;\r
+  left: auto !important;\r
+  right: 0 !important;\r
+  transform: translateY(2px);\r
 }\r
 \r
 .table td:last-child [data-nx-tooltip]:not([data-nx-tooltip-pos]):hover::after,\r
 .table td:last-child [data-tooltip]:not([data-tooltip-pos]):hover::after,\r
 .table td:last-child [data-nx-tooltip-pos="top"]:hover::after,\r
 .table td:last-child [data-tooltip-pos="top"]:hover::after,\r
+.table td:last-child .btn-group > :last-child [data-tooltip]:hover::after,\r
+.table td:last-child .btn-group > :last-child [data-nx-tooltip]:hover::after,\r
 .table td:last-child [data-nx-tooltip]:not([data-nx-tooltip-pos]):focus-visible::after,\r
 .table td:last-child [data-tooltip]:not([data-tooltip-pos]):focus-visible::after,\r
 .table td:last-child [data-nx-tooltip-pos="top"]:focus-visible::after,\r
