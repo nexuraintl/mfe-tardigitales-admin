@@ -49,7 +49,7 @@
             <td><span class="badge bg-light text-dark border">{{ row.matricula }}</span></td>
             <td class="text-muted small">{{ row.correo || 'No registrado' }}</td>
             <td class="text-end pe-3">
-              <button class="btn btn-outline-primary btn-sm" (click)="descargarPdf(row)" title="Descargar certificado">
+              <button class="btn btn-outline-primary btn-sm" (click)="descargarPdf(row)" data-nx-tooltip="Descargar certificado" aria-label="Descargar certificado">
                 <span class="fa fa-download"></span>
               </button>
             </td>

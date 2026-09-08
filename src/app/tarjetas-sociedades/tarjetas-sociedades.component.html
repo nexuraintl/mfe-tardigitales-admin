@@ -32,7 +32,8 @@
             type="button" 
             class="btn btn-sm btn-link text-muted position-absolute end-0 me-2 p-0 text-decoration-none"
             (click)="searchQuery = ''; onSearchChange()"
-            title="Limpiar búsqueda"
+            data-nx-tooltip="Limpiar búsqueda"
+            aria-label="Limpiar búsqueda"
           >
             <span class="fa fa-times"></span>
           </button>
@@ -136,13 +137,13 @@
               <td class="text-muted small">{{ row.fecha }}</td>
               <td class="text-end pe-3">
                 <div class="btn-group btn-group-sm">
-                  <button class="btn btn-outline-primary" title="Ver detalle" (click)="abrirDetalle(row)">
+                  <button class="btn btn-outline-primary" data-nx-tooltip="Ver detalle" aria-label="Ver detalle" (click)="abrirDetalle(row)">
                     <span class="fa fa-eye"></span>
                   </button>
-                  <button class="btn btn-outline-secondary" title="Ver tarjeta" (click)="abrirTarjeta(row)">
+                  <button class="btn btn-outline-secondary" data-nx-tooltip="Ver tarjeta" aria-label="Ver tarjeta" (click)="abrirTarjeta(row)">
                     <span class="fa fa-id-card-o"></span>
                   </button>
-                  <button class="btn btn-outline-secondary" title="Historial" (click)="abrirHistorial(row)">
+                  <button class="btn btn-outline-secondary" data-nx-tooltip="Historial" aria-label="Historial" (click)="abrirHistorial(row)">
                     <span class="fa fa-history"></span>
                   </button>
                 </div>
@@ -166,12 +167,12 @@
 
         <ul class="nx-table-pagination" *ngIf="totalPages > 1">
           <li class="page-item" [class.disabled]="currentPage === 1">
-            <button type="button" class="page-link" (click)="cambiarPagina(1)" [disabled]="currentPage === 1" title="Primera página">
+            <button type="button" class="page-link" (click)="cambiarPagina(1)" [disabled]="currentPage === 1" data-nx-tooltip="Primera página" aria-label="Primera página">
               ««
             </button>
           </li>
           <li class="page-item" [class.disabled]="currentPage === 1">
-            <button type="button" class="page-link" (click)="cambiarPagina(currentPage - 1)" [disabled]="currentPage === 1" title="Página anterior">
+            <button type="button" class="page-link" (click)="cambiarPagina(currentPage - 1)" [disabled]="currentPage === 1" data-nx-tooltip="Página anterior" aria-label="Página anterior">
               «
             </button>
           </li>
@@ -187,12 +188,12 @@
           </li>
 
           <li class="page-item" [class.disabled]="currentPage === totalPages">
-            <button type="button" class="page-link" (click)="cambiarPagina(currentPage + 1)" [disabled]="currentPage === totalPages" title="Página siguiente">
+            <button type="button" class="page-link" (click)="cambiarPagina(currentPage + 1)" [disabled]="currentPage === totalPages" data-nx-tooltip="Página siguiente" aria-label="Página siguiente">
               »
             </button>
           </li>
           <li class="page-item" [class.disabled]="currentPage === totalPages">
-            <button type="button" class="page-link" (click)="cambiarPagina(totalPages)" [disabled]="currentPage === totalPages" title="Última página">
+            <button type="button" class="page-link" (click)="cambiarPagina(totalPages)" [disabled]="currentPage === totalPages" data-nx-tooltip="Última página" aria-label="Última página">
               »»
             </button>
           </li>

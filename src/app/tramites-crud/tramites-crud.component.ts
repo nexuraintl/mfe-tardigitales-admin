@@ -1,4 +1,4 @@
-import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
+import { Component, OnInit, ChangeDetectorRef, HostListener } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { HttpClient } from '@angular/common/http';
@@ -39,19 +39,66 @@ export class TramitesCrudComponent implements OnInit {
 
   // Modal Crear/Editar
   modalOpen = false;
+  modalStatic = false; // true = obligatorio (no se cierra con ESC ni backdrop)
   isEditing = false;
   formTramite: Tramite = this.getEmptyTramite();
   formError: string = '';
 
   // Modal Confirmar Eliminar
   deleteModalOpen = false;
+  deleteModalStatic = false; // true = obligatorio
   tramiteToDeleteId: number | null = null;
+
+  // Efecto visual de rebote (shake) al intentar cerrar un modal obligatorio
+  modalShakeActive = false;
 
   constructor(
     private http: HttpClient,
     private cdr: ChangeDetectorRef,
     private errorHandler: ErrorHandlerService
   ) {}
+
+  @HostListener('document:keydown.escape', ['$event'])
+  onKeydownEscape(event?: any): void {
+    if (this.modalOpen) {
+      if (!this.modalStatic) {
+        this.cerrarModal();
+      } else {
+        this.triggerModalShake();
+      }
+    } else if (this.deleteModalOpen) {
+      if (!this.deleteModalStatic) {
+        this.cerrarConfirmarEliminar();
+      } else {
+        this.triggerModalShake();
+      }
+    }
+  }
+
+  onBackdropClick(modalType: 'form' | 'delete'): void {
+    if (modalType === 'form') {
+      if (!this.modalStatic) {
+        this.cerrarModal();
+      } else {
+        this.triggerModalShake();
+      }
+    } else if (modalType === 'delete') {
+      if (!this.deleteModalStatic) {
+        this.cerrarConfirmarEliminar();
+      } else {
+        this.triggerModalShake();
+      }
+    }
+  }
+
+  triggerModalShake(): void {
+    this.modalShakeActive = true;
+    this.cdr.detectChanges();
+    setTimeout(() => {
+      this.modalShakeActive = false;
+      this.cdr.detectChanges();
+    }, 280);
+  }
 
   ngOnInit(): void {
     this.obtenerTramites();
