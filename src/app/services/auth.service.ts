@@ -6,6 +6,9 @@ import { environment } from '../../environments/environment';
 @Injectable({ providedIn: 'root' })
 export class AuthService {
   constructor(private oauthService: OAuthService) {
+    if (typeof window !== 'undefined') {
+      (window as any).authService = this;
+    }
     this.initOAuth();
   }
 
@@ -24,7 +27,12 @@ export class AuthService {
 
     // Carga la configuración de Google e intenta procesar el código de respuesta si viene del redirect
     this.oauthService.loadDiscoveryDocumentAndTryLogin().then(() => {
-      console.log('Sesión cargada correctamente');
+      console.log('Sesión cargada correctamente. Autenticado:', this.isAuthenticated);
+      // Si estamos en preproducción y no hay sesión activa ni venimos con código en proceso, iniciar login
+      if (!this.isAuthenticated && typeof window !== 'undefined' && window.location.hostname.includes('preproduccion') && !window.location.search.includes('code=')) {
+        console.log('Iniciando flujo oficial de Google OAuth2...');
+        this.login();
+      }
     }).catch(err => {
       console.error('Error procesando login:', err);
     });
@@ -33,7 +41,7 @@ export class AuthService {
     this.oauthService.setupAutomaticSilentRefresh();
   }
 
-  // Redirige al usuario a la pantalla de login de Google
+  // Redirige al usuario a la pantalla de login de Google con PKCE oficial
   public login(): void {
     this.oauthService.initCodeFlow();
   }
@@ -43,13 +51,13 @@ export class AuthService {
     this.oauthService.logOut();
   }
 
-  // Obtiene el Access Token actual en texto plano
+  // Obtiene el Access Token o ID Token actual en texto plano
   public get token(): string {
-    return this.oauthService.getAccessToken() || this.oauthService.getIdToken();
+    return this.oauthService.getIdToken() || this.oauthService.getAccessToken();
   }
 
   // Verifica si hay una sesión válida activa
   public get isAuthenticated(): boolean {
-    return this.oauthService.hasValidAccessToken() || this.oauthService.hasValidIdToken();
+    return this.oauthService.hasValidIdToken() || this.oauthService.hasValidAccessToken();
   }
 }
