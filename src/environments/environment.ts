@@ -11,6 +11,7 @@ export const environment = {
     responseType: 'code',
     scope: 'openid',
     // Fuerza a Google a emitir el JWT con la audiencia esperada por el Gateway
-    customQueryParams: { audience: 'https://apig-nexura-pre-qa-cr4m0bsh.ue.gateway.dev' }
+    customQueryParams: { audience: '999421923761-91hrpmisr7qc7ot99s3disi6qnbk8fn9.apps.googleusercontent.com' }
   }
 };
+
