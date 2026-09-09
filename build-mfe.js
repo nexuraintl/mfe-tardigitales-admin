@@ -72,23 +72,16 @@ async function buildMfe() {
     fs.writeFileSync(outputCssPath, concatenatedCss, 'utf8');
     console.log(`¡CSS unificado creado con éxito en: ${outputCssPath}!`);
 
-    // Copiar layout.js y layout.css de Web Components
-    const wcLayoutJs = path.join(__dirname, '..', 'wc_admin_layout', 'dist', 'layout.js');
-    const wcLayoutCss = path.join(__dirname, '..', 'wc_admin_layout', 'dist', 'layout.css');
-    
-    if (fs.existsSync(wcLayoutJs)) {
-      fs.copyFileSync(wcLayoutJs, path.join(destDir, 'layout.js'));
-      console.log(`¡layout.js copiado a: ${destDir}!`);
-    } else if (fs.existsSync(path.join(__dirname, 'public', 'layout.js'))) {
-      fs.copyFileSync(path.join(__dirname, 'public', 'layout.js'), path.join(destDir, 'layout.js'));
-    }
-
-    if (fs.existsSync(wcLayoutCss)) {
-      fs.copyFileSync(wcLayoutCss, path.join(destDir, 'layout.css'));
-      console.log(`¡layout.css copiado a: ${destDir}!`);
-    } else if (fs.existsSync(path.join(__dirname, 'public', 'layout.css'))) {
-      fs.copyFileSync(path.join(__dirname, 'public', 'layout.css'), path.join(destDir, 'layout.css'));
-    }
+    // Copiar favicon.ico si existe
+    ['favicon.ico'].forEach(fav => {
+      const favSrc = fs.existsSync(path.join(srcDir, fav)) 
+        ? path.join(srcDir, fav) 
+        : path.join(__dirname, 'public', fav);
+      if (fs.existsSync(favSrc)) {
+        fs.copyFileSync(favSrc, path.join(destDir, fav));
+        console.log(`¡${fav} copiado a: ${destDir}!`);
+      }
+    });
 
     // Copiar carpeta assets si existe
     const assetsSrc = path.join(srcDir, 'assets');
@@ -106,13 +99,22 @@ async function buildMfe() {
     <title>JCC Portal</title>
     <base href="/">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
-    <!-- Web Components Layout Oficial Nexura (Lit) -->
-    <link rel="stylesheet" href="layout.css">
+    <link rel="icon" type="image/x-icon" href="favicon.ico">
     <link rel="stylesheet" href="jcc-portal-mfe.css">
-    <script src="layout.js" type="module"></script>
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" defer></script>
+    <!-- Carga dinámica del Web Component Layout por CDN -->
+    <script>
+      (() => {
+        const isPreprod = location.href.includes('https://preproduccion9-jcc.nexura.com.co');
+        const cdnUrl = isPreprod
+          ? 'https://preproduccion9-jcc.nexura.com.co/mod/Galeria/js/web-components/admin/v1/layout.esm.js'
+          : 'http://local-cdn.nexura.com.co/web-components/admin/v1/layout.esm.js';
+
+        const script = document.createElement('script');
+        script.type = 'module';
+        script.src = cdnUrl;
+        document.head.appendChild(script);
+      })();
+    </script>
   </head>
   <body>
     <app-root></app-root>
