@@ -15,7 +15,11 @@ export class AuthInterceptor implements HttpInterceptor {
       return next.handle(req);
     }
 
-    const token = this.authStorage ? (this.authStorage.getItem('access_token') || this.authStorage.getItem('id_token')) : null;
+    const token = this.authStorage?.getItem('id_token')
+      || this.authStorage?.getItem('access_token')
+      || (typeof sessionStorage !== 'undefined' ? (sessionStorage.getItem('id_token') || sessionStorage.getItem('access_token')) : null)
+      || (typeof localStorage !== 'undefined' ? (localStorage.getItem('id_token') || localStorage.getItem('access_token')) : null);
+    
     const isApiRequest = req.url.startsWith(environment.apiGatewayUrl) || req.url.startsWith('/apig');
 
     if (isApiRequest) {
