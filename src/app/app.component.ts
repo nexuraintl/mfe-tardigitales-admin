@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { Router, RouterOutlet, NavigationEnd } from '@angular/router';
 import { filter } from 'rxjs';
 import { MenuSection, UserProfile, AppTile, PrimaryAction } from './core/models/layout.models';
+import { AuthService } from './services/auth.service';
 
 export interface HeaderAction {
   id: string;
@@ -21,6 +22,7 @@ export interface HeaderAction {
   styleUrl: './app.component.css',
 })
 export class App implements OnInit {
+  public authService = inject(AuthService);
   private router = inject(Router);
   private cdr = inject(ChangeDetectorRef);
 
