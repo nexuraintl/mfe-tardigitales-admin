@@ -27,12 +27,7 @@ export class AuthService {
 
     // Carga la configuración de Google e intenta procesar el código de respuesta si viene del redirect
     this.oauthService.loadDiscoveryDocumentAndTryLogin().then(() => {
-      console.log('Sesión cargada correctamente. Autenticado:', this.isAuthenticated);
-      // Si estamos en preproducción y no hay sesión activa ni venimos con código en proceso, iniciar login
-      if (!this.isAuthenticated && typeof window !== 'undefined' && window.location.hostname.includes('preproduccion') && !window.location.search.includes('code=')) {
-        console.log('Iniciando flujo oficial de Google OAuth2...');
-        this.login();
-      }
+      console.log('Sesión cargada correctamente');
     }).catch(err => {
       console.error('Error procesando login:', err);
     });
