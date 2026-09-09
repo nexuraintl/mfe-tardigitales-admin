@@ -10,24 +10,30 @@ export class AuthInterceptor implements HttpInterceptor {
   private authStorage = inject(OAuthStorage, { optional: true });
 
   intercept(req: HttpRequest<any>, next: HttpHandler): Observable<HttpEvent<any>> {
-    const token = this.authStorage ? (this.authStorage.getItem('access_token') || this.authStorage.getItem('id_token')) : null;
+    // Si la petición es externa (ej: Google Accounts para discovery o login), dejar pasar limpia sin withCredentials
+    if (req.url.includes('accounts.google.com') || req.url.includes('googleapis.com')) {
+      return next.handle(req);
+    }
 
-    // Solo adjuntar el token si la petición se dirige al API Gateway (absoluta o relativa)
-    if (token && (req.url.startsWith(environment.apiGatewayUrl) || req.url.startsWith('/apig'))) {
+    const token = this.authStorage ? (this.authStorage.getItem('access_token') || this.authStorage.getItem('id_token')) : null;
+    const isApiRequest = req.url.startsWith(environment.apiGatewayUrl) || req.url.startsWith('/apig');
+
+    if (isApiRequest) {
+      const headers: { [key: string]: string } = {};
+      if (token) {
+        headers['Authorization'] = `Bearer ${token}`;
+      }
+
       const authReq = req.clone({
-        setHeaders: {
-          Authorization: `Bearer ${token}`
-        },
+        setHeaders: headers,
         withCredentials: true
       });
       return next.handle(authReq);
     }
 
-    const clonedReq = req.clone({
-      withCredentials: true
-    });
-    return next.handle(clonedReq);
+    return next.handle(req);
   }
 }
+
 
 
